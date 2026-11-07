@@ -9,6 +9,7 @@ git -c core.autocrlf=false apply ..\patches\player-csp.patch
 git -c core.autocrlf=false apply ..\patches\transcribe-offline.patch
 git -c core.autocrlf=false apply ..\patches\render-http-security.patch
 git -c core.autocrlf=false apply ..\patches\runtime-python.patch
+git -c core.autocrlf=false apply ..\patches\new-project-safety.patch
 ```
 
 Проверка обратимости:
@@ -18,6 +19,7 @@ git -c core.autocrlf=false apply --reverse --check ..\patches\player-csp.patch
 git -c core.autocrlf=false apply --reverse --check ..\patches\transcribe-offline.patch
 git -c core.autocrlf=false apply --reverse --check ..\patches\render-http-security.patch
 git -c core.autocrlf=false apply --reverse --check ..\patches\runtime-python.patch
+git -c core.autocrlf=false apply --reverse --check ..\patches\new-project-safety.patch
 ```
 
 ## Состав
@@ -28,6 +30,7 @@ git -c core.autocrlf=false apply --reverse --check ..\patches\runtime-python.pat
 | `transcribe-offline.patch` | `tools/transcribe.py` | локальная CTranslate2-модель, без автоскачивания; `--audio` обязателен, `--model` указывает на локальный каталог | `2024bf4e364bf4a66dfd59e6d9e9bea687a76f7c229f62230651c89000d5be50` |
 | `render-http-security.patch` | `render.mjs` | T1.2C: только `127.0.0.1`, allowlist, realpath containment, route guard, GET/HEAD | `e94f1508b5823a5ddabd9cfcc8e1ab3e202b7e33c7e2e3c371b4d23670a9d605` |
 | `runtime-python.patch` | `tools/common.py`, `tools/doctor.py` | R2: единый Python/venv, ленивый numpy, явный выбранный интерпретатор в doctor | `common` `719d9452…`, `doctor` `d6b56eb3…` |
+| `new-project-safety.patch` | `tools/new_project.py` | R7: slug-only `--name`, containment в `projects/`, атомарное создание, `--force` без удаления сцен | `ad1b1d45ddb66ac1f1b09000b98743d9e3f5bc39bffc10b918c09ee0703cac92` |
 
 Исходные хеши (для сверки):
 
@@ -42,4 +45,4 @@ git -c core.autocrlf=false apply --reverse --check ..\patches\runtime-python.pat
 - `render-http-security.patch` — **только `render.mjs`**. CSP вынесен в отдельный `player-csp.patch`, чтобы патчи применялись независимо.
 - Исходный внешний патч T1.2C содержал и `player.html`, и `render.mjs`; здесь он разделён.
 - Не запускать `backups/t1.2f-*/restore.ps1` для «починки» тестов: он вернёт незащищённые `render.mjs`/`player.html`.
-- `verify_kit` должен считать эти пять файлов ожидаемо изменёнными (R1/R2), а не требовать копирования оригинала.
+- `verify_kit` должен считать эти шесть файлов ожидаемо изменёнными (R1/R2/R7), а не требовать копирования оригинала.

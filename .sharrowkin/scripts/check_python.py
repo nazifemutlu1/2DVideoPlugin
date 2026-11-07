@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-TARGETS = ["original", "2d-video", "tools", ".sharrowkin/scripts"]
+TARGETS = ["original", "2d-video", "tools", "tests", ".sharrowkin/scripts"]
 SKIP = {"node_modules", ".git", "build", "out", "projects", "__pycache__"}
 
 

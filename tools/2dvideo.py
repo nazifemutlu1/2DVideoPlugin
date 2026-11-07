@@ -145,6 +145,8 @@ def cmd_init(a) -> int:
            "--lang", a.lang, "--speech-lang", a.speech_lang or a.lang,
            "--aspect", a.aspect, "--resolution", a.resolution, "--style", a.style,
            "--fps", str(a.fps), "--title", a.title or a.name]
+    if a.force:
+        cmd.append("--force")
     if a.script:
         script_path = Path(a.script).expanduser()
         if not script_path.is_file():
@@ -309,6 +311,7 @@ def main() -> int:
     p.add_argument("--fps", type=int, default=24)
     p.add_argument("--title", default="")
     p.add_argument("--captions", action="store_true")
+    p.add_argument("--force", action="store_true", help="обновить существующий проект, не удаляя сцены")
     p.set_defaults(func=cmd_init)
 
     p = sub.add_parser("timeline", help="тайминги: parse_script.py или transcribe.py")

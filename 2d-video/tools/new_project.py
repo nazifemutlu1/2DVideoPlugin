@@ -1,39 +1,117 @@
 """tools/new_project.py — create a project folder for one video.
 
   python tools/new_project.py --name my-video --voice "C:/path/voiceover.mp3" [--script path] \
-      --aspect 16:9|9:16 --resolution 720p|1080p|1440p|2160p [--style dusk] [--fps 24] [--captions]
+      --aspect 16:9|9:16 --resolution 720p|1080p|1440p|2160p [--style dusk] [--fps 24] [--captions] [--force]
+
+Safety:
+  - --name must be a simple ASCII/underscore slug, never a path;
+  - the resolved target must stay inside projects/;
+  - an existing non-empty project is refused unless --force is given;
+  - a brand-new project is assembled in a temporary directory and renamed atomically.
 """
-import argparse, os, shutil, sys
+import argparse
+import os
+import re
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
 sys.path.insert(0, os.path.dirname(__file__))
 from common import probe_duration, save_json
 
-ap = argparse.ArgumentParser()
-ap.add_argument("--name", required=True)
-ap.add_argument("--lang", default="ru", help="output language code (default: ru)")
-ap.add_argument("--speech-lang", help="source voiceover language code or auto (default: output language)")
-ap.add_argument("--voice", required=True)
-ap.add_argument("--script")
-ap.add_argument("--aspect", default="16:9", choices=["16:9", "9:16"])
-ap.add_argument("--resolution", default="1080p", choices=["720p", "1080p", "1440p", "2160p", "4k"])
-ap.add_argument("--style", default="dusk")
-ap.add_argument("--fps", type=int, default=24)
-ap.add_argument("--title", default="")
-ap.add_argument("--captions", action="store_true", help="burn word-by-word captions (recommended for 9:16)")
-a = ap.parse_args()
+PROJECTS = Path("projects").resolve()
+NAME_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$")
 
-root = os.path.join("projects", a.name)
-for d in ["input", "timeline", "story", "scenes/sets", "scenes/shots", "build", "out", "audio"]:
-    os.makedirs(os.path.join(root, d), exist_ok=True)
-voice_dst = os.path.join("input", "voiceover" + os.path.splitext(a.voice)[1].lower())
-shutil.copy2(a.voice, os.path.join(root, voice_dst))
-script_dst = None
-if a.script:
-    script_dst = os.path.join("input", "script" + os.path.splitext(a.script)[1].lower())
-    shutil.copy2(a.script, os.path.join(root, script_dst))
-dur = probe_duration(os.path.join(root, voice_dst))
-cfg = {"language": a.lang, "speechLanguage": a.speech_lang or a.lang, "title": a.title or a.name, "aspect": a.aspect, "resolution": a.resolution, "fps": a.fps, "style": a.style,
-       "voiceover": voice_dst.replace("\\", "/"), "script": script_dst.replace("\\", "/") if script_dst else None,
-       "duration": round(dur, 3), "captions": bool(a.captions), "bars": None, "fadeIn": 0.5, "fadeOut": 0.8,
-       "music": {"enabled": True, "gainDb": -17}, "sfx": {"enabled": True, "gainDb": -6}, "loudness": -14}
-save_json(os.path.join(root, "config.json"), cfg)
-print(f"created {root}  (voiceover {dur:.1f}s, {a.aspect} {a.resolution} @ {a.fps}fps, style {a.style})")
+
+def fail(message: str, code: int = 2) -> None:
+    print(f"FAIL: {message}")
+    sys.exit(code)
+
+
+def project_target(name: str) -> Path:
+    if not NAME_RE.fullmatch(name):
+        fail("--name must match ^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$ (slug, not a path)")
+    target = (PROJECTS / name).resolve()
+    if target != PROJECTS and PROJECTS not in target.parents:
+        fail(f"--name escapes projects/: {target}")
+    return target
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--name", required=True)
+    ap.add_argument("--lang", default="ru", help="output language code (default: ru)")
+    ap.add_argument("--speech-lang", help="source voiceover language code or auto (default: output language)")
+    ap.add_argument("--voice", required=True)
+    ap.add_argument("--script")
+    ap.add_argument("--aspect", default="16:9", choices=["16:9", "9:16"])
+    ap.add_argument("--resolution", default="1080p", choices=["720p", "1080p", "1440p", "2160p", "4k"])
+    ap.add_argument("--style", default="dusk")
+    ap.add_argument("--fps", type=int, default=24)
+    ap.add_argument("--title", default="")
+    ap.add_argument("--captions", action="store_true", help="burn word-by-word captions (recommended for 9:16)")
+    ap.add_argument("--force", action="store_true", help="update an existing project without deleting its scenes")
+    a = ap.parse_args()
+
+    target = project_target(a.name)
+    if target.exists() and not target.is_dir():
+        fail(f"target exists and is not a directory: {target}")
+    if target.exists() and any(target.iterdir()) and not a.force:
+        fail(f"project already exists: {target} (use --force to update config/input without deleting scenes)")
+
+    voice_src = Path(a.voice).expanduser()
+    if not voice_src.is_file():
+        fail(f"voiceover not found: {voice_src}")
+    script_src = Path(a.script).expanduser() if a.script else None
+    if script_src and not script_src.is_file():
+        fail(f"script not found: {script_src}")
+
+    PROJECTS.mkdir(parents=True, exist_ok=True)
+    temp = Path(tempfile.mkdtemp(prefix=f".tmp-{a.name}-", dir=PROJECTS))
+    try:
+        for d in ["input", "timeline", "story", "scenes/sets", "scenes/shots", "build", "out", "audio"]:
+            (temp / d).mkdir(parents=True, exist_ok=True)
+
+        voice_dst = Path("input") / ("voiceover" + voice_src.suffix.lower())
+        shutil.copy2(voice_src, temp / voice_dst)
+        script_dst = None
+        if script_src:
+            script_dst = Path("input") / ("script" + script_src.suffix.lower())
+            shutil.copy2(script_src, temp / script_dst)
+
+        dur = probe_duration(str(temp / voice_dst))
+        cfg = {
+            "language": a.lang,
+            "speechLanguage": a.speech_lang or a.lang,
+            "title": a.title or a.name,
+            "aspect": a.aspect,
+            "resolution": a.resolution,
+            "fps": a.fps,
+            "style": a.style,
+            "voiceover": voice_dst.as_posix(),
+            "script": script_dst.as_posix() if script_dst else None,
+            "duration": round(dur, 3),
+            "captions": bool(a.captions),
+            "bars": None,
+            "fadeIn": 0.5,
+            "fadeOut": 0.8,
+            "music": {"enabled": True, "gainDb": -17},
+            "sfx": {"enabled": True, "gainDb": -6},
+            "loudness": -14,
+        }
+        save_json(str(temp / "config.json"), cfg)
+
+        if target.exists():
+            # --force updates config/input but preserves existing scenes and user files.
+            shutil.copytree(temp, target, dirs_exist_ok=True)
+        else:
+            temp.rename(target)
+        print(f"created {target}  (voiceover {dur:.1f}s, {a.aspect} {a.resolution} @ {a.fps}fps, style {a.style})")
+    finally:
+        if temp.exists():
+            shutil.rmtree(temp, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    main()

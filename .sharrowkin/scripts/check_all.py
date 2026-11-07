@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 STEPS = [
     ("python syntax", [sys.executable, ".sharrowkin/scripts/check_python.py"], ROOT),
+    ("unit tests", [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"], ROOT),
     ("esm syntax", ["node", "--experimental-vm-modules", ".sharrowkin/scripts/check_syntax.mjs"], ROOT),
     ("skill runtime", [sys.executable, ".sharrowkin/scripts/check_skills.py"], ROOT),
     ("kit integrity", [sys.executable, "tools/verify_kit.py"], ROOT / "2d-video"),

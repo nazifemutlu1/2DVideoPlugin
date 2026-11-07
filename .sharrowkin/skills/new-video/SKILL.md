@@ -48,7 +48,7 @@ Ask once (`ask_user_question` when available), skipping anything the user alread
 Defaults: language `ru`, speech language same as output, 16:9, 1080p, generated music + SFX.
 
 ## 2. Studio
-The studio is at `2d-video/` (original kit + 5 intentional patches). From the workspace root run `python tools/2dvideo.py doctor` and, inside `2d-video/`, `python tools/verify_kit.py` (29/29). Report anything MISSING with its fix command — but **ask before installing**. If `2d-video/render.mjs` is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` and follow `references/install.md`.
+The studio is at `2d-video/` (original kit + 6 intentional patches). From the workspace root run `python tools/2dvideo.py doctor` and, inside `2d-video/`, `python tools/verify_kit.py` (29/29). Report anything MISSING with its fix command — but **ask before installing**. If `2d-video/render.mjs` is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` and follow `references/install.md`.
 
 ## 3. Project and timestamps
 Run the CLI from the workspace root:

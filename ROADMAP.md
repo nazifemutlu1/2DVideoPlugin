@@ -1,6 +1,6 @@
 # ROADMAP: 2DVideoPlugin → production-ready
 
-Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3 и R5 выполнены**; R4 пере-сформулирован под TTS и ждёт TTS-фикстуру; R6 выполнен кроме R6.3 (раскладка тестовых проектов); следующий исполнимый пункт — R7. Этот файл — источник истины по порядку работ.
+Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3, R5 и R7 выполнены**; R4 пере-сформулирован под TTS и ждёт TTS-фикстуру; R6 выполнен кроме R6.3 (раскладка тестовых проектов); следующий исполнимый пункт — R8. Этот файл — источник истины по порядку работ.
 
 > **Проект не закрывается на R15.** R15 — это стабильный baseline, а не финальная заморозка. После него ожидаются интеграции (TTS, стили, внешний API/сервис); они вынесены в R16–R17. Поэтому упаковка и release-freeze не делаются, пока не определён scope интеграции.
 
@@ -91,7 +91,7 @@
 - `tools/common.py` импортирует numpy только внутри `load_audio`; `python tools/new_project.py --help` и `beats.py --help` → exit 0 без numpy.
 - `bootstrap.ps1` и `bootstrap.sh` только проверяют и печатают команды; Chromium определяется корректно.
 - `README.md`, `MIGRATION.md` и 5 skills обновлены на `python tools/2dvideo.py` / явный venv.
-- `npm test` → PASS 4/4; `verify_kit` 29/29 (5 intentional patches); CLI `mix` → exit 0.
+- `npm test` → PASS 4/4; `verify_kit` 29/29 (6 intentional patches); CLI `mix` → exit 0.
 
 
 ---
@@ -113,7 +113,7 @@
 - `python tools/2dvideo.py --python C:\Python314\python.exe check` → exit 2, «numpy, scipy, faster_whisper» — корректный негативный тест.
 - `python tools/2dvideo.py mix --project projects/whisper_en_e2e` → exit 0; `ffprobe`: H.264 + AAC, 9.893 s.
 - `python tools/2dvideo.py --python C:\Python314\python.exe mix ...` → exit 2 с понятной командой установки.
-- `npm test` → PASS 4/4; `verify_kit` 29/29 (5 intentional patches).
+- `npm test` → PASS 4/4; `verify_kit` 29/29 (6 intentional patches).
 
 
 ---
@@ -200,13 +200,21 @@
 
 ## R7. Безопасность ввода `new_project.py` — P1
 
-- [ ] R7.1 Валидировать `--name`: `^[a-z0-9][a-z0-9_-]*$` (или явно разрешить Unicode с проверкой).
-- [ ] R7.2 Резолвить путь и проверять, что он внутри `2d-video/projects`.
-- [ ] R7.3 Запрещать существующий проект без `--force`; с `--force` — явное подтверждение.
-- [ ] R7.4 Атомарное создание: temp dir → rename, чтобы не оставлять половину проекта.
-- [ ] R7.5 Тесты: `..\outside`, абсолютный путь, пробелы, кириллица, существующий проект.
+- [x] R7.1 Валидировать `--name`: `^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$` (slug, без путей; Unicode-имена отклоняются).
+- [x] R7.2 Резолвить путь и проверять, что он внутри `2d-video/projects`.
+- [x] R7.3 Запрещать существующий проект без `--force`; с `--force` — обновлять config/input, сохраняя сцены.
+- [x] R7.4 Атомарное создание: temp dir → rename, чтобы не оставлять половину проекта.
+- [x] R7.5 Тесты: `..\outside`, абсолютный путь, пробелы, кириллица, существующий проект.
 
 **DoD:** запись вне `projects/` невозможна; случайная перезапись существующего проекта невозможна без `--force`.
+
+**Evidence (2026-11-07):**
+- `python -m unittest discover -s tests -v` → 5 тестов OK.
+- `../escape`, `..\escape`, `bad name`, `кириллица`, имя >64 символов → exit 2; запись вне `projects/` не создаётся.
+- Новый проект создаётся; повтор без `--force` → exit 2; с `--force` → exit 0, sentinel scene сохраняется.
+- Битый audio → проект и temp не остаются.
+- `npm test` → PASS 6/6 (добавлены unit tests); `verify_kit` 29/29 (6 intentional patches).
+
 
 ---
 
@@ -340,7 +348,7 @@
 | R4 | P0 | TTS + тайминги (Whisper опционален) | R2 | [~] |
 | R5 | P0/P1 | Skills/runtime | R2 | [x] |
 | R6 | P0/P1 | Порядок и чистота | R0 | [~] |
-| R7 | P1 | Безопасность `new_project` | R2 | [ ] |
+| R7 | P1 | Безопасность `new_project` | R2 | [x] |
 | R8 | P1 | Пути `--project` | R2 | [ ] |
 | R9 | P1 | Security-тесты рендера | R1 | [ ] |
 | R10 | P1 | Ошибки/exit codes | R2 | [ ] |

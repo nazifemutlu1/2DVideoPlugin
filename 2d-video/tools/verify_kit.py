@@ -29,6 +29,7 @@ PATCHED = {
     "tools/transcribe.py": "transcribe-offline.patch",
     "tools/common.py": "runtime-python.patch",
     "tools/doctor.py": "runtime-python.patch",
+    "tools/new_project.py": "new-project-safety.patch",
 }
 
 EXPECTED = {
@@ -59,7 +60,7 @@ EXPECTED = {
     "tools/beats.py": "0d7160df4e2393bf",
     "tools/common.py": "719d9452a233a962",
     "tools/doctor.py": "d6b56eb3e93680cc",
-    "tools/new_project.py": "0bf5785a04786c55",
+    "tools/new_project.py": "aca57b03253da28a",
     "tools/parse_script.py": "5163cf3162b2579b",
     "tools/transcribe.py": "fef7d16a6db0ee14",
 }
