@@ -37,6 +37,7 @@
 
 ```powershell
 python tools/2dvideo.py doctor
+python tools/2dvideo.py check
 python tools/2dvideo.py init --name test --voice "C:/audio/voice.mp3" --title "Тест" --lang ru
 python tools/2dvideo.py timeline --project projects/test
 python tools/2dvideo.py beats --project projects/test

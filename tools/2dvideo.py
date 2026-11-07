@@ -23,6 +23,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -78,6 +79,15 @@ def require_node_modules() -> bool:
     return True
 
 
+def require_ffmpeg() -> bool:
+    missing = [name for name in ("ffmpeg", "ffprobe") if not shutil.which(name)]
+    if missing:
+        print("FAIL: не найдены в PATH: " + ", ".join(missing))
+        print("      установите ffmpeg/ffprobe (winget install Gyan.FFmpeg) и откройте новый терминал")
+        return False
+    return True
+
+
 def require_python_deps(mods: tuple[str, ...] = ("numpy", "scipy")) -> bool:
     """Check packages in the selected interpreter, not in the hosting Python."""
     code = f"import importlib.util as u; print(','.join(m for m in {mods!r} if u.find_spec(m) is None))"
@@ -112,8 +122,19 @@ def cmd_doctor(_a) -> int:
     return run([PY, "tools/doctor.py"])
 
 
-def cmd_init(a) -> int:
+def cmd_check(_a) -> int:
     if not require_studio():
+        return 2
+    print(f"Python: {PY}")
+    ok = True
+    ok = require_ffmpeg() and ok
+    ok = require_node_modules() and ok
+    ok = require_python_deps(("numpy", "scipy", "faster_whisper")) and ok
+    return 0 if ok else 2
+
+
+def cmd_init(a) -> int:
+    if not require_studio() or not require_ffmpeg():
         return 2
     voice = Path(a.voice).expanduser()
     if not voice.is_file():
@@ -134,7 +155,7 @@ def cmd_init(a) -> int:
 
 
 def cmd_timeline(a) -> int:
-    if not require_studio():
+    if not require_studio() or not require_ffmpeg():
         return 2
     pdir = project_dir(a.project)
     cfg_path = pdir / "config.json"
@@ -151,6 +172,8 @@ def cmd_timeline(a) -> int:
             mode = "timestamps" if Path(script).suffix.lower() in (".srt", ".vtt", ".json") else "plain"
     if mode == "timestamps":
         return run([PY, "tools/parse_script.py", "--project", a.project, "--script", script])
+    if not require_python_deps(("numpy", "faster_whisper")):
+        return 2
     if not Path(PY).is_file():
         return fail(f"не найден Python-интерпретатор: {PY}")
     model = Path(a.model).expanduser() if a.model else WHISPER_MODEL
@@ -203,7 +226,7 @@ def cmd_render(a) -> int:
 
 
 def cmd_mix(a) -> int:
-    if not require_studio() or not require_python_deps():
+    if not require_studio() or not require_ffmpeg() or not require_python_deps(("numpy", "scipy")):
         return 2
     return run([PY, "audio/mix.py", "--project", a.project])
 
@@ -265,6 +288,7 @@ def main() -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("doctor", help="проверить окружение студии").set_defaults(func=cmd_doctor)
+    sub.add_parser("check", help="проверить ffmpeg, npm-пакеты и Python-зависимости без запуска этапа").set_defaults(func=cmd_check)
 
     p = sub.add_parser("init", help="создать проект (new_project.py)")
     p.add_argument("--name", required=True)

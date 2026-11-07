@@ -50,6 +50,7 @@ This is the original Claude plugin, ported to Sharrowkin. The creative rules bel
 **CLI runner** (deterministic stages, no model needed):
 ```bash
 python tools/2dvideo.py doctor
+python tools/2dvideo.py check
 python tools/2dvideo.py init --name <slug> --voice "<path>" [--script "<path>"] --aspect 16:9 --resolution 1080p --title "<title>" [--captions]
 python tools/2dvideo.py timeline --project projects/<slug> [--script <file>] [--model small]
 python tools/2dvideo.py beats --project projects/<slug> [--force]

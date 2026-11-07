@@ -1,6 +1,6 @@
 # ROADMAP: 2DVideoPlugin → production-ready
 
-Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0, R1 и R2 выполнены**, следующий — R3. Этот файл — источник истины по порядку работ.
+Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3 выполнены**, следующий — R4. Этот файл — источник истины по порядку работ.
 
 ## Правила выполнения
 
@@ -98,13 +98,21 @@
 
 **Цель:** финальная стадия запускается одной командой.
 
-- [ ] R3.1 Заменить `require_python_deps()` в `tools/2dvideo.py` на проверку через `PY -c "import numpy, scipy"`.
-- [ ] R3.2 Разделить проверки: `numpy` — для init/timeline/beats; `numpy+scipy` — для mix; `ffmpeg` — для mix.
-- [ ] R3.3 Добавить `--dry-run`/`--check` для проверки зависимостей без запуска.
-- [ ] R3.4 Тест: `python tools/2dvideo.py mix --project projects/whisper_en_e2e` → exit 0, `out/*.mp4` содержит H.264+AAC.
-- [ ] R3.5 Тест негативный: без scipy в выбранном интерпретаторе — понятная ошибка, exit 2.
+- [x] R3.1 Заменить `require_python_deps()` в `tools/2dvideo.py` на проверку через `PY -c "import numpy, scipy"`.
+- [x] R3.2 Разделить проверки: `ffmpeg` — для init/timeline/mix; `numpy+faster_whisper` — для Whisper; `numpy+scipy` — для mix.
+- [x] R3.3 Добавить `--dry-run`/`--check` для проверки зависимостей без запуска.
+- [x] R3.4 Тест: `python tools/2dvideo.py mix --project projects/whisper_en_e2e` → exit 0, `out/*.mp4` содержит H.264+AAC.
+- [x] R3.5 Тест негативный: без scipy в выбранном интерпретаторе — понятная ошибка, exit 2.
 
 **DoD:** CLI `mix` работает на текущей машине; ложного «нет numpy/scipy» нет; финальный MP4 валиден.
+
+**Evidence (2026-11-07):**
+- `python tools/2dvideo.py check` → exit 0; печатает выбранный Python и проверяет ffmpeg, npm, Python-пакеты.
+- `python tools/2dvideo.py --python C:\Python314\python.exe check` → exit 2, «numpy, scipy, faster_whisper» — корректный негативный тест.
+- `python tools/2dvideo.py mix --project projects/whisper_en_e2e` → exit 0; `ffprobe`: H.264 + AAC, 9.893 s.
+- `python tools/2dvideo.py --python C:\Python314\python.exe mix ...` → exit 2 с понятной командой установки.
+- `npm test` → PASS 4/4; `verify_kit` 29/29 (5 intentional patches).
+
 
 ---
 
@@ -266,7 +274,7 @@
 | R0 | P0 | Страховка, git, патчи | — | [x] |
 | R1 | P0 | Зелёный gate | R0 | [x] |
 | R2 | P0 | Python/venv | R0 | [x] |
-| R3 | P0 | CLI mix | R2 | [ ] |
+| R3 | P0 | CLI mix | R2 | [x] |
 | R4 | P0 | Whisper RU | R2 | [ ] |
 | R5 | P0/P1 | Skills/runtime | R2 | [ ] |
 | R6 | P0/P1 | Версии, упаковка | R0 | [ ] |
