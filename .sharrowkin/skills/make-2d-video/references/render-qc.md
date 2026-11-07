@@ -6,8 +6,10 @@
 
 **Final render:**
 ```bash
+# in 2d-video/
 node render.mjs --project projects/my-video [--workers N] [--format jpeg]
-python tools/2dvideo.py mix --project projects/my-video   # from workspace root: music + SFX + mux
+# in the workspace root:
+python tools/2dvideo.py mix --project projects/my-video
 ```
 - Workers default to half the CPU threads (max 8). Each worker is a separate Chromium. Lower the count if RAM is short (about 0.6–1.5 GB per worker at 1080p, more at 4K).
 - On machines without a GPU (most Linux servers), Chromium uses SwiftShader (`--gl swiftshader`, the default on Linux). On Windows and macOS desktops the GPU is used (`--gl auto`).

@@ -65,7 +65,7 @@ It runs Python syntax, ESM syntax, skills-runtime lint, kit integrity and enviro
 
 ## Notes
 
-- TTS + SRT/JSON is the primary voice path: `init --voice ... --script ...` then `timeline --mode timestamps`. Whisper is legacy-only and its model is **not downloaded automatically**; it always needs a **separate audio file** via `--audio` and a local `--model` directory.
+- TTS via an external API + SRT/JSON is the primary voice path: the API returns audio + timings; `init --voice ... --script ...` then `timeline --mode timestamps`. Whisper is legacy-only and its model is **not downloaded automatically**; it always needs a **separate audio file** via `--audio` and a local `--model` directory. Final ffprobe/ffmpeg check runs at the end on the finished MP4.
 - On Linux servers Chromium uses SwiftShader (`--gl swiftshader`); CPU rendering is slower.
 - Disk: node_modules + Chromium ≈ 600 MB, venv ≈ 420 MB, Whisper model (optional) ≈ 486 MB, plus renders.
 - Updating: apply the current `patches/` to the new kit; never overwrite `projects/`.

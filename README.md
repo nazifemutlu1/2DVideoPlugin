@@ -23,12 +23,13 @@
 - Chromium для Playwright установлен.
 - `.venv-whisper`: Python 3.12.10, numpy 2.5.4, scipy 1.18.1; faster-whisper 1.2.1 — optional legacy.
 - Системный Python 3.14 **не содержит** numpy/scipy/faster-whisper; используйте runner или venv.
-- `npm test` — PASS: Python syntax, ESM syntax, kit 29/29, environment 13/13.
+- `npm test` — PASS 6/6: Python syntax, unit tests (15), ESM syntax, skills runtime, kit 29/29 (8 intentional patches), environment 14/14.
 - Эталонный render sheet — PASS: 14 кадров + contact sheet.
 - 9:16 sheet — PASS: 5 кадров 540×960.
 - Финальный MP4 из `whisper_en_e2e` — H.264 + AAC, 9.893 s, −14.5 LUFS.
-- Основной путь озвучки — **TTS + SRT/JSON**: `init --voice ... --script ...` и `timeline --mode timestamps`. Whisper не требуется.
+- Основной путь озвучки — **TTS через внешний API + SRT/JSON**: API отдаёт готовый WAV/MP3 и тайминги, затем `init --voice ... --script ...` и `timeline --mode timestamps`. Whisper не требуется.
 - Whisper `small.en` остаётся только как legacy-опция для английского; для русского TTS-путь не использует модель.
+- Финальная проверка озвучки/микса через `ffprobe`/`ffmpeg` — только в конце, на готовом MP4, а не на этапе timeline.
 
 Полные доказательства и открытые P0/P1 — в [AUDIT.md](AUDIT.md) и [ROADMAP.md](ROADMAP.md).
 
@@ -55,17 +56,38 @@ Runner сам выбирает Python в таком порядке: `--python` �
 python tools/2dvideo.py --python ".\.venv-whisper\Scripts\python.exe" doctor
 ```
 
-Прямые команды `python tools/*.py` допустимы только для не-аудио этапов; для Whisper и `audio/mix.py` нужен venv:
+Прямые команды `python tools/*.py` допустимы только для не-аудио этапов; для Whisper и `audio/mix.py` нужен venv. Для `audio/mix.py` сначала перейдите в `2d-video/`:
 
 ```powershell
-.\.venv-whisper\Scripts\python.exe audio/mix.py --project projects/test
+cd 2d-video
+..\.venv-whisper\Scripts\python.exe audio/mix.py --project projects/test
 ```
 
 Сцены (`scenes/shots/*.js`) пишет модель по правилам из `references/style-bible.md` и `engine-api.md`.
 
+## TTS через внешний API
+
+Озвучка генерируется **внешним TTS API**, а не локальным TTS. Студия не вызывает API сама и не хранит API-ключи: на вход приходят готовые файлы.
+
+```text
+история/сценарий
+  → внешний TTS API
+  → voice.wav / voice.mp3 + script.srt (или JSON с word timings)
+  → init --voice ... --script ...
+  → timeline --mode timestamps
+  → beats → сцены → preview → render → mix
+  → финальная проверка готового MP4: ffprobe/ffmpeg
+```
+
+Правила:
+
+- если API не отдаёт тайминги — нужен SRT/VTT/JSON, а не «примерная» раскладка;
+- TTS-файл не подаётся в Whisper автоматически;
+- финальный `ffprobe`/`ffmpeg`-контроль (кодек, длительность, audio stream, loudness) выполняется **в конце**, на готовом ролике.
+
 ## Whisper — только отдельное аудио
 
-Основной путь — **TTS + SRT/JSON**; Whisper в нём не участвует и не вызывается автоматически.
+Основной путь — **TTS через внешний API + SRT/JSON**; Whisper в нём не участвует и не вызывается автоматически.
 
 Если нужен legacy-Whisper, ему всегда подаётся **отдельный аудиофайл**:
 
@@ -117,10 +139,20 @@ cd 2d-video
 node render.mjs --project examples/reaction-time --self-check
 ```
 
+## Troubleshooting
+
+- **`ModuleNotFoundError: numpy`** — запускайте через `python tools/2dvideo.py` (он выбирает venv) или явно `.venv-whisper\Scripts\python.exe`.
+- **`ffmpeg not found`** — установите ffmpeg/ffprobe и откройте новый терминал; проверка: `python tools/2dvideo.py check`.
+- **`Chromium for Playwright` missing** — `cd 2d-video; npx playwright install chromium`.
+- **Кириллица в кадре** — используйте Nunito/Playfair; Fredoka только Latin.
+- **Whisper не видит речь** — проверьте, что передан отдельный `--audio`, локальный `--model` и правильный `--lang`; TTS-файл не подставляется автоматически.
+- **TTS API не дал тайминги** — запросите SRT/VTT/JSON; не подменяйте распознаванием.
+- **Финальный MP4 короче/длиннее** — сверьте `story.duration` с `shots.json`, затем проверьте `mix` и `ffprobe` в конце.
+
 ## Ограничения
 
 - `Ifverse/` — reserved future-integration workspace; сейчас не трогаем, не чистим и не включаем в artifact.
-- TTS + SRT/JSON не использует Whisper; legacy-путь с Whisper `small.en` ограничен английским.
+- TTS через внешний API + SRT/JSON не использует Whisper; legacy-путь с Whisper `small.en` ограничен английским.
 - `vizavi-motion` — optional режиссёрский overlay, не часть основного runtime. Шесть Vizavi-стилей (ink/paper/pixel/SaaS) — backlog R16, а не текущие пресеты. Сейчас выбор стиля — 5 color-grade пресетов `engine/styles.js`.
 - Полный длинный рендер 4K не проверялся; проверены sheet, 9:16 sheet, preview и финальный 9.9-секундный MP4.
 - Skills адаптированы под DSH: `ask_user_question`, `bash`/`pwsh`, `job_output`, `read_image`; слэш-команд нет.

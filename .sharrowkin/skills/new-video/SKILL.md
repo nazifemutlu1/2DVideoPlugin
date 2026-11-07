@@ -22,7 +22,7 @@ This skill covers stages 1–4 of the 2D Video pipeline. Shared references live 
 - Choice card → `ask_user_question` (2–4 options, one recommended).
 - Shell → `bash` (Git Bash) or `pwsh` (PowerShell); use `python`, not `python3`; quote paths with spaces.
 - **Python convention:** use `python tools/2dvideo.py` from the workspace root; it selects `.venv-whisper`. Bare host `python` lacks numpy/scipy.
-- **Never install packages or download a model without explicit permission.** The primary voice path is TTS + SRT/JSON; Whisper is legacy-only.
+- **Never install packages or download a model without explicit permission.** The primary voice path is TTS via an external API + SRT/JSON; Whisper is legacy-only and needs a separate `--audio` file.
 - Never edit `original/` or `2d-video.plugin`.
 - The CLI runner `python tools/2dvideo.py` (workspace root) wraps these stages: `init`, `timeline`, `beats`, `status`.
 

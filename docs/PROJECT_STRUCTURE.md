@@ -54,13 +54,14 @@ dist/                 будущий artifact (R15; в git не входит)
 
 ```text
 история/сценарий
-  → TTS: WAV/MP3 + SRT/VTT/JSON
+  → внешний TTS API: WAV/MP3 + SRT/VTT/JSON
   → init --voice ... --script ...
   → timeline --mode timestamps
   → beats → сцены → style/preview → render → mix
+  → финальная проверка готового MP4: ffprobe/ffmpeg
 ```
 
-Whisper в этом пути **не вызывается**.
+Whisper в этом пути **не вызывается**. TTS API не встроен в студию: ключи/вызовы не хранятся в репозитории.
 
 ## Legacy Whisper
 

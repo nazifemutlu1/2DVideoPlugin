@@ -114,7 +114,7 @@ Run the `tools/2dvideo.py` commands from the workspace root. On Windows use `pyt
 ```bash
 python tools/2dvideo.py init --name <slug> --lang <language> --speech-lang <speech-language> --voice "<voiceover path>" [--script "<script path>"] --aspect 16:9 --resolution 1080p --title "<title>" [--captions]
 ```
-- Timestamped script: `python tools/2dvideo.py timeline --project projects/<slug> --mode timestamps --script projects/<slug>/input/script.<ext>` (primary TTS path; Whisper is not called).
+- Timestamped script: `python tools/2dvideo.py timeline --project projects/<slug> --mode timestamps --script projects/<slug>/input/script.<ext>` (primary path for TTS via external API; Whisper is not called).
 - Plain script: `python tools/2dvideo.py timeline --project projects/<slug> --mode plain --audio <separate-audio> --script projects/<slug>/input/script.txt --lang <speech-language> --model <local-model-dir>`. The match must be ≥ 90%; if it's lower, tell the user the script and audio differ.
 - No script: `python tools/2dvideo.py timeline --project projects/<slug> --mode whisper --audio <separate-audio> --lang <speech-language> --model <local-model-dir>`. **Whisper always gets its own audio file via `--audio`; it must never receive TTS output or project `voiceover` automatically.** The model must exist locally; ask before downloading one.
 
