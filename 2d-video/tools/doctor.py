@@ -36,9 +36,23 @@ try:
 except Exception:
     pass
 ok("Chromium for Playwright", chrom, "", f"cd \"{ROOT}\" && npx playwright install chromium")
-for mod, pipname in [("numpy", "numpy"), ("scipy", "scipy"), ("faster_whisper", "faster-whisper")]:
+for mod, pipname in [("numpy", "numpy"), ("scipy", "scipy")]:
     ok(f"python: {pipname}", importlib.util.find_spec(mod) is not None, "", f"\"{PY}\" -m pip install {pipname}" + (" --break-system-packages" if OS == "Linux" else ""))
 ok(f"python >= 3.9", sys.version_info >= (3, 9), sys.version.split()[0], "install Python 3.10+ from https://python.org")
+
+# Optional legacy Whisper / CUDA stack: report it without failing the TTS path.
+fw = importlib.util.find_spec("faster_whisper") is not None
+ct2 = importlib.util.find_spec("ctranslate2") is not None
+torch_ok = importlib.util.find_spec("torch") is not None
+cuda = False
+if torch_ok:
+    try:
+        cuda = subprocess.run([PY, "-c", "import torch; print('cuda' if torch.cuda.is_available() else 'cpu')"], capture_output=True, text=True, timeout=30).stdout.strip() == "cuda"
+    except Exception:
+        cuda = False
+ok("python: faster-whisper (optional)", True, "installed" if fw else "not installed; TTS path does not need it")
+ok("python: ctranslate2 (optional)", True, "installed" if ct2 else "not installed; legacy Whisper only")
+ok("python: torch (optional CUDA)", True, "installed" if torch_ok else "not installed; Whisper runs on CPU")
 
 print("\n2D Video — environment check\n")
 print(f"  Python: {sys.executable}")
@@ -48,6 +62,9 @@ gpu = "unknown"
 try: gpu = "NVIDIA GPU found" if shutil.which("nvidia-smi") else "no NVIDIA GPU (CPU render / transcription — slower, works fine)"
 except Exception: pass
 print(f"\n  {OS} {platform.machine()}, {os.cpu_count()} CPU threads, {gpu}")
+requested = (os.environ.get("WHISPER_DEVICE") or "auto").lower()
+whisper_device = "cuda" if requested == "cuda" or (requested == "auto" and cuda) else "cpu"
+print(f"  Whisper device: {whisper_device} (requested {requested}); CUDA available: {cuda}")
 if fixes:
     print("\nTo fix, run:")
     for f in fixes: print("  " + f)

@@ -61,10 +61,10 @@ EXPECTED = {
     "render.mjs": "6664e662ce55fb3f",
     "tools/beats.py": "4f066a561c9d6d1d",
     "tools/common.py": "719d9452a233a962",
-    "tools/doctor.py": "d6b56eb3e93680cc",
+    "tools/doctor.py": "c59b82f9f6ab9569",
     "tools/new_project.py": "aca57b03253da28a",
     "tools/parse_script.py": "266581e03bdebcee",
-    "tools/transcribe.py": "58f568905a75739c",
+    "tools/transcribe.py": "a4d710366c0afe61",
 }
 
 

@@ -29,9 +29,9 @@ git -c core.autocrlf=false apply --reverse --check ..\patches\error-handling.pat
 | Патч | Файл | Зачем | SHA-256 результата |
 |---|---|---|---|
 | `player-csp.patch` | `player.html` | CSP: запрет внешних скриптов/фреймов, разрешён import map по SHA-256 | `8a5a4a2bf897dd56d355e5c4466af5d4ea4afd554bb57f62c447affcf301d2ce` |
-| `transcribe-offline.patch` | `tools/transcribe.py` | локальная CTranslate2-модель, `--audio` обязателен, `--model` локальный; понятные ошибки | `b662a21b667f1a4e3fa4d994bc3d02e5005f4e2b0561d75b5144f96442e3d7cf` |
+| `transcribe-offline.patch` | `tools/transcribe.py` | локальная CTranslate2-модель, `--audio` обязателен, `--model` локальный; `WHISPER_DEVICE`, понятные ошибки | `738ccef4f2fad46337b1b560b9c3aecf72f6b1df99e0ca392dec7138b5c104da` |
 | `render-http-security.patch` | `render.mjs` | T1.2C: только `127.0.0.1`, allowlist, realpath, route guard, GET/HEAD, `--self-check`, ffmpeg check | `797d907110d00547e020e14dd727eb8d92892a788f4c7369001c2cb65057a452` |
-| `runtime-python.patch` | `tools/common.py`, `tools/doctor.py` | R2: единый Python/venv, ленивый numpy, явный интерпретатор в doctor | `common` `719d9452…`, `doctor` `d6b56eb3…` |
+| `runtime-python.patch` | `tools/common.py`, `tools/doctor.py` | R2/R11: единый Python/venv, ленивый numpy, явный интерпретатор, GPU/device в doctor | `common` `719d9452…`, `doctor` `c59b82f9…` |
 | `new-project-safety.patch` | `tools/new_project.py` | R7: slug-only `--name`, containment, атомарное создание, `--force` без удаления сцен | `ad1b1d45ddb66ac1f1b09000b98743d9e3f5bc39bffc10b918c09ee0703cac92` |
 | `error-handling.patch` | `tools/parse_script.py`, `tools/beats.py` | R10: понятные ошибки на пустых/битых таймингах, exit 2 | `parse` `266581e0…`, `beats` `4f066a56…` |
 

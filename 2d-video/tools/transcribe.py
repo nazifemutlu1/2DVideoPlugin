@@ -77,13 +77,20 @@ def main():
         from faster_whisper import WhisperModel  # pip install faster-whisper
     except ImportError as exc:
         fail(f"faster-whisper is not installed ({exc}); use requirements-whisper.txt")
+    requested = (os.environ.get("WHISPER_DEVICE") or "auto").lower()
+    if requested not in ("auto", "cpu", "cuda"):
+        fail("WHISPER_DEVICE must be auto, cpu, or cuda")
+    cuda = False
     try:
         import torch  # noqa
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        cuda = bool(torch.cuda.is_available())
     except Exception:
-        device = "cpu"
+        cuda = False
+    if requested == "cuda" and not cuda:
+        fail("WHISPER_DEVICE=cuda requires a CUDA-enabled torch and a visible GPU")
+    device = "cuda" if requested == "cuda" or (requested == "auto" and cuda) else "cpu"
     model_name = os.path.abspath(a.model)
-    print(f"loading whisper '{model_name}' on {device}…")
+    print(f"loading whisper '{model_name}' on {device} (requested {requested}, cuda={cuda})…")
     model = WhisperModel(model_name, device=device, compute_type="float16" if device == "cuda" else "int8")
     audio = load_audio(audio_path, 16000)
     segs, info = model.transcribe(audio, language=lang, word_timestamps=True, vad_filter=True, beam_size=5)

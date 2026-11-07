@@ -23,11 +23,31 @@
          sys.exit(f"ffmpeg could not decode {path}: {p.stderr.decode()[-800:]}")
 --- a/tools/doctor.py
 +++ b/tools/doctor.py
-@@ -39,10 +39,12 @@
- for mod, pipname in [("numpy", "numpy"), ("scipy", "scipy"), ("faster_whisper", "faster-whisper")]:
+@@ -34,25 +34,44 @@
+     out = subprocess.run(["node", "-e", "import('playwright').then(p=>{console.log(p.chromium.executablePath())})"], cwd=ROOT, capture_output=True, text=True, timeout=60).stdout.strip()
+     chrom = bool(out) and os.path.exists(out)
+ except Exception:
+     pass
+ ok("Chromium for Playwright", chrom, "", f"cd \"{ROOT}\" && npx playwright install chromium")
+-for mod, pipname in [("numpy", "numpy"), ("scipy", "scipy"), ("faster_whisper", "faster-whisper")]:
++for mod, pipname in [("numpy", "numpy"), ("scipy", "scipy")]:
      ok(f"python: {pipname}", importlib.util.find_spec(mod) is not None, "", f"\"{PY}\" -m pip install {pipname}" + (" --break-system-packages" if OS == "Linux" else ""))
  ok(f"python >= 3.9", sys.version_info >= (3, 9), sys.version.split()[0], "install Python 3.10+ from https://python.org")
 
++# Optional legacy Whisper / CUDA stack: report it without failing the TTS path.
++fw = importlib.util.find_spec("faster_whisper") is not None
++ct2 = importlib.util.find_spec("ctranslate2") is not None
++torch_ok = importlib.util.find_spec("torch") is not None
++cuda = False
++if torch_ok:
++    try:
++        cuda = subprocess.run([PY, "-c", "import torch; print('cuda' if torch.cuda.is_available() else 'cpu')"], capture_output=True, text=True, timeout=30).stdout.strip() == "cuda"
++    except Exception:
++        cuda = False
++ok("python: faster-whisper (optional)", True, "installed" if fw else "not installed; TTS path does not need it")
++ok("python: ctranslate2 (optional)", True, "installed" if ct2 else "not installed; legacy Whisper only")
++ok("python: torch (optional CUDA)", True, "installed" if torch_ok else "not installed; Whisper runs on CPU")
++
  print("\n2D Video — environment check\n")
 +print(f"  Python: {sys.executable}")
 +print(f"  Studio: {ROOT}\n")
@@ -36,7 +56,13 @@
  try: gpu = "NVIDIA GPU found" if shutil.which("nvidia-smi") else "no NVIDIA GPU (CPU render / transcription — slower, works fine)"
  except Exception: pass
  print(f"\n  {OS} {platform.machine()}, {os.cpu_count()} CPU threads, {gpu}")
-@@ -53,6 +55,6 @@
++requested = (os.environ.get("WHISPER_DEVICE") or "auto").lower()
++whisper_device = "cuda" if requested == "cuda" or (requested == "auto" and cuda) else "cpu"
++print(f"  Whisper device: {whisper_device} (requested {requested}); CUDA available: {cuda}")
+ if fixes:
+     print("\nTo fix, run:")
+     for f in fixes: print("  " + f)
+     if "--install" in sys.argv:
          for f in fixes:
              if f.startswith(("cd ", f"\"{PY}\"")):
                  print(f"\n>>> {f}"); subprocess.run(f, shell=True, cwd=ROOT)
