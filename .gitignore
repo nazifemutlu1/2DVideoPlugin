@@ -33,6 +33,7 @@ debug.log
 %SystemDrive%/
 .qoder/
 .whisper-e2e-test/
+dist/
 
 # Editors / OS
 .DS_Store

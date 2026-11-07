@@ -97,8 +97,11 @@ def check_python() -> None:
         add("Python venv", f"missing {VENV}", False)
     code = "import importlib.util as u; print(' '.join(f'{m}={bool(u.find_spec(m))}' for m in ('numpy','scipy')))"
     try:
-        out = run([str(py), "-c", code], timeout=120).stdout.strip()
-        add("Python packages (core/TTS)", out, all(v.endswith("True") for v in out.split()))
+        proc = run([str(py), "-c", code], timeout=120)
+        out = proc.stdout.strip()
+        values = out.split()
+        ok = proc.returncode == 0 and len(values) == 2 and all(v.endswith("True") for v in values)
+        add("Python packages (core/TTS)", f"{out or '<empty>'} (exit {proc.returncode})", ok)
     except Exception as exc:  # noqa: BLE001
         add("Python packages (core/TTS)", str(exc), False)
     try:

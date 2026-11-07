@@ -12,7 +12,7 @@ Accepted:
 Word timings inside a cue are spread proportionally to word length (good enough for cutting & captions;
 run tools/transcribe.py with --script instead if you need exact word timing).
 """
-import argparse, json, os, re, shutil, sys
+import argparse, json, math, os, re, shutil, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from common import load_json, probe_duration, sentences_from_words, write_timeline
 
@@ -32,7 +32,23 @@ def to_sec(m):
     v = 0.0
     for p in parts:
         v = v * 60 + float(p)
+    if not math.isfinite(v):
+        raise ValueError(f"timestamp is not finite: {m}")
     return v
+
+
+def validate_items(items, label):
+    for i, item in enumerate(items):
+        try:
+            start, end = float(item["start"]), float(item["end"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError(f"{label} item {i} has no numeric start/end") from exc
+        if not math.isfinite(start) or not math.isfinite(end):
+            raise ValueError(f"{label} item {i} has a non-finite interval")
+        if start < 0 or end <= start:
+            raise ValueError(f"{label} item {i} has an invalid interval {start}..{end}")
+        if not str(item.get("word") or item.get("text") or "").strip():
+            raise ValueError(f"{label} item {i} is empty")
 
 
 def parse_srt_vtt(txt):
@@ -41,11 +57,29 @@ def parse_srt_vtt(txt):
         m = re.search(r"([\d:.,]+)\s*-->\s*([\d:.,]+)", block)
         if not m:
             continue
-        body = block[m.end():].strip()
-        body = re.sub(r"<[^>]+>", "", body).replace("\n", " ").strip()
+        tail = block[m.end():]
+        first, sep, rest = tail.partition("\n")
+        if re.match(r"^\s*(align|line|position|region|size|vertical):", first, re.I):
+            tail = rest
+        body = re.sub(r"<[^>]+>", "", tail).replace("\n", " ").strip()
         if body:
             cues.append({"start": to_sec(m.group(1)), "end": to_sec(m.group(2)), "text": body})
     return cues
+
+
+def validate_cues(cues):
+    for i, cue in enumerate(cues):
+        try:
+            start = float(cue["start"])
+            end = float(cue["end"]) if cue.get("end") is not None else None
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError(f"cue {i} has no numeric start/end") from exc
+        if not math.isfinite(start) or (end is not None and not math.isfinite(end)):
+            raise ValueError(f"cue {i} has a non-finite interval")
+        if start < 0 or (end is not None and end <= start):
+            raise ValueError(f"cue {i} has an invalid interval {start}..{end}")
+        if not str(cue.get("text") or "").strip():
+            raise ValueError(f"cue {i} is empty")
 
 
 def parse_txt(txt):
@@ -67,6 +101,8 @@ def spread_words(cues, total):
     words = []
     for i, c in enumerate(cues):
         end = c.get("end") or (cues[i + 1]["start"] if i + 1 < len(cues) else total)
+        if end <= c["start"]:
+            raise ValueError(f"cue {i} has an invalid interval {c['start']}..{end}")
         toks = c["text"].split()
         if not toks:
             continue
@@ -121,13 +157,17 @@ def main():
     if words is None:
         if not cues:
             die("no timestamps found; use tools/transcribe.py --script <file> or provide SRT/VTT/JSON timestamps")
+        validate_cues(cues)
         cues.sort(key=lambda c: c["start"])
         words = spread_words(cues, total or (cues[-1]["start"] + 4))
         sentences = [{"i": i, "start": round(c["start"], 3), "end": round(c.get("end") or (cues[i + 1]["start"] if i + 1 < len(cues) else (total or c["start"] + 4)), 3), "text": c["text"]} for i, c in enumerate(cues)]
     else:
+        validate_items(words, "word")
         sentences = sentences_from_words(words)
     if not words:
         die("script produced no words/timestamps")
+    if words is not None:
+        validate_items(words, "word")
     if total and words[-1]["end"] > total + 1:
         print(f"WARNING: script runs to {words[-1]['end']:.1f}s but the voiceover is {total:.1f}s — check the timestamps match this audio.")
     write_timeline(os.path.join(a.project, "timeline"), words, sentences, f"script:{os.path.basename(path)}")

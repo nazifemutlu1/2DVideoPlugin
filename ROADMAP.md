@@ -93,7 +93,7 @@
 - `tools/common.py` импортирует numpy только внутри `load_audio`; `python tools/new_project.py --help` и `beats.py --help` → exit 0 без numpy.
 - `bootstrap.ps1` и `bootstrap.sh` только проверяют и печатают команды; Chromium определяется корректно.
 - `README.md`, `MIGRATION.md` и 5 skills обновлены на `python tools/2dvideo.py` / явный venv.
-- `npm test` → PASS 4/4; `verify_kit` 29/29 (8 intentional patches); CLI `mix` → exit 0.
+- `npm test` → PASS 4/4; `verify_kit` 29/29 (12 intentional patches); CLI `mix` → exit 0.
 
 
 ---
@@ -115,7 +115,7 @@
 - `python tools/2dvideo.py --python C:\Python314\python.exe check` → exit 2, «numpy, scipy, faster_whisper» — корректный негативный тест.
 - `python tools/2dvideo.py mix --project projects/whisper_en_e2e` → exit 0; `ffprobe`: H.264 + AAC, 9.893 s.
 - `python tools/2dvideo.py --python C:\Python314\python.exe mix ...` → exit 2 с понятной командой установки.
-- `npm test` → PASS 4/4; `verify_kit` 29/29 (8 intentional patches).
+- `npm test` → PASS 4/4; `verify_kit` 29/29 (12 intentional patches).
 
 
 ---
@@ -216,7 +216,7 @@
 - `../escape`, `..\escape`, `bad name`, `кириллица`, имя >64 символов → exit 2; запись вне `projects/` не создаётся.
 - Новый проект создаётся; повтор без `--force` → exit 2; с `--force` → exit 0, sentinel scene сохраняется.
 - Битый audio → проект и temp не остаются.
-- `npm test` → PASS 6/6 (добавлены unit tests); `verify_kit` 29/29 (8 intentional patches).
+- `npm test` → PASS 6/6 (добавлены unit tests); `verify_kit` 29/29 (12 intentional patches).
 
 
 ---
@@ -250,7 +250,7 @@
 **Evidence (2026-11-07):**
 - `node render.mjs --project examples/reaction-time --self-check` → `SELF-CHECK PASS (11/11)`.
 - [tests/test_render_security.py](tests/test_render_security.py) → PASS; 9 unit tests total.
-- `npm test` → 6/6, exit 0; kit 29/29, 8 intentional patches.
+- `npm test` → 6/6, exit 0; kit 29/29, 12 intentional patches.
 - Symlink check skipped на Windows (`EPERM`); на Linux должен выполняться.
 - R9.3 (внешний fetch) пока не автоматизирован; CSP и route guard присутствуют, но нужен отдельный browser test.
 
@@ -272,7 +272,7 @@
 **Evidence (2026-11-07):**
 - [tests/test_error_handling.py](tests/test_error_handling.py): 6 тестов, включая empty SRT, bad JSON, empty words, no audio, no ffmpeg.
 - `python -m unittest discover -s tests -v` → 15 тестов OK.
-- `npm test` → 6/6, exit 0; `verify_kit` 29/29, 8 intentional patches.
+- `npm test` → 6/6, exit 0; `verify_kit` 29/29, 12 intentional patches.
 - `parse_script.py`/`beats.py` имеют `FAIL:` и exit 2; `transcribe.py` — exit 2 для отсутствия audio/model/faster-whisper.
 - `render.mjs` проверяет ffmpeg и удаляет `build/parts` при ошибке.
 
@@ -293,7 +293,7 @@
 - `python tools/2dvideo.py doctor`: `torch not installed`, `CUDA available: False`, `Whisper device: cpu`.
 - `WHISPER_DEVICE=cuda` без CUDA/torch → exit 2 с понятной ошибкой.
 - [docs/benchmarks.md](docs/benchmarks.md): 1080p 7 s → 15.12 s (~12.2 fps); 4K still → 2.73 s.
-- `npm test` → 6/6; `verify_kit` 29/29, 8 intentional patches.
+- `npm test` → 6/6; `verify_kit` 29/29, 12 intentional patches.
 
 
 ---
@@ -301,7 +301,7 @@
 ## R12. Документация: truth pass — P1
 
 - [x] R12.1 Обновить `README.md`: фактические версии, venv, модель, права, команды, ограничения.
-- [x] R12.2 Обновить `MIGRATION.md`: 29/29, 8 патчей, реальные артефакты, 43 файла в `original/`.
+- [x] R12.2 Обновить `MIGRATION.md`: 29/29, 12 патчей, реальные артефакты, 43 файла в `original/`.
 - [x] R12.3 Обновить `references/install.md`, `render-qc.md`, `SKILL.md` под текущие команды.
 - [x] R12.4 Добавить troubleshooting: venv, модель, ffmpeg, Chromium, права, кириллица.
 - [~] R12.5 Проверить команды из README: все `--help` (10 команд) exit 0; `doctor/check/status` exit 0; полный render/mix — по ранее снятым evidence, не перезапускались.
@@ -309,11 +309,28 @@
 **DoD:** нет утверждений, противоречащих фактическому состоянию; новый человек проходит путь без догадок.
 
 **Evidence (2026-11-07):**
-- README: текущие 6/6, 15 unit tests, 14 env checks, 8 patches; TTS через внешний API; финальный ffprobe/ffmpeg — в конце.
+- README: текущие 6/6, 20 unit tests, 14 env checks, 12 patches; TTS через внешний API; финальный ffprobe/ffmpeg — в конце.
 - MIGRATION: таблица проверок обновлена; исторические числа отделены.
 - install/render-qc/SKILL: команды `python tools/2dvideo.py`, отдельный `--audio` для Whisper, финальный ffmpeg QC.
 - README troubleshooting: venv, ffmpeg, Chromium, кириллица, Whisper audio, TTS timing, duration.
 - CLI: `doctor/check/status --help` и все subcommand `--help` → exit 0; `doctor/check/status` → exit 0.
+
+### Независимый аудит 2026-11-07 — исправлено
+
+- A03: `wordTime` Unicode-aware; RU-слово находится, пустой ключ → null.
+- A09: короткая музыка/фейд не падает на длине < 3 s.
+- A10: VTT settings не попадают в текст; reverse/Infinity/non-finite интервалы отклоняются.
+- A01: finite/interval validation до записи; `write_timeline` пишет через temp + replace.
+- A05: `mix` отказывает, если voice длиннее story; `--allow-truncate` — явный opt-in.
+- A06: `listScenes` проверяет realpath, containment и циклы.
+- A02/A08: missing scene/scene errors валят финальный рендер; worker ffmpeg проверяет exit code; browser закрывается в `finally`; `build/parts` чистится.
+- A07: canvas очищается перед transition compositing.
+- A11: `--project` containment в `2d-video/projects`.
+- A12/A13/A14/A15: runner config/timestamps guards; check_env проверяет exit code; transcribe проверяет script/alignment; self-check тестирует sentinel через symlink.
+- A04: `--force` обновляет config/input с rollback и запрещает symlink destinations.
+- Docs: README/MIGRATION примеры передают script и `--mode timestamps`; `--model small` убран.
+
+**Ещё не закрыто:** R9.3 (браузерный внешний fetch), R9.5 (Linux), R10.4 (старые preview/final), fault-injection тест rollback A04, symlink-тест на Linux; полный E2E — R14.
 
 
 ---

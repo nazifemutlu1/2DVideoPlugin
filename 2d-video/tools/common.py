@@ -62,9 +62,21 @@ def sentences_from_words(words, max_gap=0.8):
 
 
 def write_timeline(outdir, words, sentences, source):
-    save_json(os.path.join(outdir, "words.json"), {"source": source, "words": words})
-    save_json(os.path.join(outdir, "sentences.json"), sentences)
-    with open(os.path.join(outdir, "transcript.txt"), "w", encoding="utf-8") as f:
-        for s in sentences:
-            f.write(f"[{ts(s['start'])} -> {ts(s['end'])}] {s['text']}\n")
+    os.makedirs(outdir, exist_ok=True)
+    stamp = f".tmp-{os.getpid()}"
+    words_tmp = os.path.join(outdir, "words.json" + stamp)
+    sentences_tmp = os.path.join(outdir, "sentences.json" + stamp)
+    transcript_tmp = os.path.join(outdir, "transcript.txt" + stamp)
+    try:
+        save_json(words_tmp, {"source": source, "words": words})
+        save_json(sentences_tmp, sentences)
+        with open(transcript_tmp, "w", encoding="utf-8") as f:
+            for s in sentences:
+                f.write(f"[{ts(s['start'])} -> {ts(s['end'])}] {s['text']}\n")
+        for tmp, final in ((words_tmp, "words.json"), (sentences_tmp, "sentences.json"), (transcript_tmp, "transcript.txt")):
+            os.replace(tmp, os.path.join(outdir, final))
+    finally:
+        for tmp in (words_tmp, sentences_tmp, transcript_tmp):
+            if os.path.exists(tmp):
+                os.remove(tmp)
     print(f"timeline: {len(words)} words, {len(sentences)} sentences -> {outdir}")

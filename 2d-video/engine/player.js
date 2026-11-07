@@ -104,6 +104,7 @@ window.renderFrame = function (f) {
   drawShot(bufA, shot, lt);
   const tr = shot.in || { type: 'cut' }, tdur = tr.dur ?? (tr.type === 'whip' ? 0.35 : 0.5);
   const W = main.width, H = main.height; mg.setTransform(1, 0, 0, 1, 0, 0); mg.globalAlpha = 1; mg.globalCompositeOperation = 'source-over';
+  mg.clearRect(0, 0, W, H);
   const grade = E.style.grade; mg.filter = grade.filter && grade.filter !== 'none' ? grade.filter : 'none';
   if (tr.type !== 'cut' && i > 0 && lt < tdur) {
     const prev = E.shots[i - 1], k = ease.inOut(lt / tdur); drawShot(bufB, prev, t - prev.start);

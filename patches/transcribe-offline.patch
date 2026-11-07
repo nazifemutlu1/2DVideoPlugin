@@ -13,7 +13,7 @@
  (so on-screen text and captions use the script's spelling, not Whisper's guesses).
  Writes timeline/words.json, timeline/sentences.json, timeline/transcript.txt.
  """
-@@ -41,40 +44,65 @@
+@@ -41,46 +44,75 @@
      matched = sum(b.size for b in sm.get_matching_blocks())
      print(f"script alignment: {matched}/{len(toks)} script words matched to audio ({100 * matched / max(1, len(toks)):.0f}%)")
      return [{"word": t, "start": round(s, 3), "end": round(e, 3)} for t, (s, e) in zip(toks, times)]
@@ -86,6 +86,17 @@
 +        fail("no speech found in the supplied audio")
      source = f"whisper:{model_name}"
      script = a.script or (os.path.join(a.project, cfg["script"]) if cfg.get("script") and cfg["script"].endswith((".txt", ".md")) else None)
-     if script and os.path.exists(script):
+-    if script and os.path.exists(script):
++    if script and not os.path.exists(script):
++        fail(f"script not found: {script}")
++    if script:
          txt = open(script, encoding="utf-8").read()
          txt = re.sub(r"^\s*#.*$", "", txt, flags=re.M)  # drop markdown headings
+         words = align_script(txt, words)
++        if not words:
++            fail("script produced no words after alignment")
+         source += "+script"
+     write_timeline(os.path.join(a.project, "timeline"), words, sentences_from_words(words), source)
+
+
+ if __name__ == "__main__":

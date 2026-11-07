@@ -1,0 +1,87 @@
+--- a/engine/core.js
++++ b/engine/core.js
+@@ -43,13 +43,15 @@
+   if (!w && E.words.length) return 0;
+   return clamp(0.25 + 0.75 * Math.abs(Math.sin(globalT * 17)) * (0.6 + 0.4 * Math.sin(globalT * 5.3)));
+ }
+
+ // time (global seconds) when a word is spoken: wordTime('brain', 40) -> 43.78 (null if not found)
++const wordKey = (value) => String(value || '').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}']/gu, '');
+ export function wordTime(match, after = 0) {
+-  const m = match.toLowerCase().replace(/[^\w']/g, '');
+-  const w = E.words.find(w => w.start >= after - 0.05 && w.word.toLowerCase().replace(/[^\w']/g, '').startsWith(m));
++  const m = wordKey(match);
++  if (!m) return null;
++  const w = E.words.find(w => w.start >= after - 0.05 && wordKey(w.word).startsWith(m));
+   return w ? w.start : null;
+ }
+
+ // ---------- colour ----------
+ export function rgb(c) {
+--- a/audio/music.py
++++ b/audio/music.py
+@@ -144,11 +144,13 @@
+         ramp_in = np.sin(np.linspace(0, np.pi / 2, fin)) ** 2
+         y[:fin] *= ramp_in[:, None]
+         cut = secs(en - st + xf); y = y[:cut]
+         if i < len(plan) - 1: y[-fo:] *= (np.cos(np.linspace(0, np.pi / 2, fo)) ** 2)[:, None]
+         place(out, y, secs(st - (xf * 0.5 if i else 0)))
+-    k = secs(3.0); out[-k:] *= np.linspace(1, 0, k)[:, None]
++    k = min(secs(3.0), len(out))
++    if k > 0:
++        out[-k:] *= np.linspace(1, 0, k)[:, None]
+     return (out * db(-20 - rms_db(out))).astype(np.float32)
+
+
+ def default_plan(total):
+     return [{"start": 0, "end": total, "mood": "mystery", "intensity": 0.5}]
+--- a/audio/mix.py
++++ b/audio/mix.py
+@@ -34,26 +34,31 @@
+ def load_any(path, sr=SR):
+     return load_audio(path, sr, mono=False)
+
+
+ def main():
+-    ap = argparse.ArgumentParser(); ap.add_argument("--project", required=True); ap.add_argument("--video"); ap.add_argument("--no-music", action="store_true"); ap.add_argument("--no-sfx", action="store_true"); ap.add_argument("--out")
++    ap = argparse.ArgumentParser(); ap.add_argument("--project", required=True); ap.add_argument("--video"); ap.add_argument("--no-music", action="store_true"); ap.add_argument("--no-sfx", action="store_true"); ap.add_argument("--out"); ap.add_argument("--allow-truncate", action="store_true", help="allow a voiceover longer than story duration")
+     a = ap.parse_args(); P = a.project
+     cfg = json.load(open(os.path.join(P, "config.json"), encoding="utf-8")); story = json.load(open(os.path.join(P, "story", "shots.json"), encoding="utf-8"))
+     total = story.get("duration") or story["shots"][-1]["end"]; n = secs(total)
+     voice = load_any(os.path.join(P, cfg["voiceover"]))
++    if len(voice) > n + secs(0.15) and not a.allow_truncate:
++        print(f"FAIL: voiceover is {len(voice) / SR:.2f}s but story is {total:.2f}s; regenerate timeline/story or pass --allow-truncate")
++        sys.exit(2)
+     voice = np.concatenate([voice, np.zeros((max(0, n - len(voice)), 2), np.float32)])[:n]
+     v_rms = rms_db(voice[np.abs(voice).mean(1) > db(-40)]) if np.any(np.abs(voice).mean(1) > db(-40)) else -20
+     env = envelope(voice)
+     mix = voice.copy()
+     # ---- music
+     mcfg = cfg.get("music", {}) or {}
+     if mcfg.get("enabled", True) and not a.no_music:
+         if mcfg.get("file"):
+             mus = load_any(os.path.join(P, mcfg["file"]))
+             reps = int(np.ceil(n / len(mus))); mus = np.concatenate([mus] * reps)[:n]
+-            k = secs(3); mus[-k:] *= np.linspace(1, 0, k)[:, None]
++            k = min(secs(3), len(mus))
++            if k > 0:
++                mus[-k:] *= np.linspace(1, 0, k)[:, None]
+         else:
+             path = os.path.join(P, "build", "music.wav")
+             plan = story.get("music") or MUSIC.default_plan(total)
+             print(f"generating music: {len(plan)} section(s) — " + ", ".join(f"{s['mood']}@{s.get('intensity', .5)}" for s in plan))
+             mus = MUSIC.render_score(plan, total, mcfg.get("seed", 1), mcfg.get("key")); write_wav(path, mus)
+--- a/engine/player.js
++++ b/engine/player.js
+@@ -102,10 +102,11 @@
+ window.renderFrame = function (f) {
+   const t = f / E.fps, i = shotIndexAt(t), shot = E.shots[i], lt = t - shot.start;
+   drawShot(bufA, shot, lt);
+   const tr = shot.in || { type: 'cut' }, tdur = tr.dur ?? (tr.type === 'whip' ? 0.35 : 0.5);
+   const W = main.width, H = main.height; mg.setTransform(1, 0, 0, 1, 0, 0); mg.globalAlpha = 1; mg.globalCompositeOperation = 'source-over';
++  mg.clearRect(0, 0, W, H);
+   const grade = E.style.grade; mg.filter = grade.filter && grade.filter !== 'none' ? grade.filter : 'none';
+   if (tr.type !== 'cut' && i > 0 && lt < tdur) {
+     const prev = E.shots[i - 1], k = ease.inOut(lt / tdur); drawShot(bufB, prev, t - prev.start);
+     if (tr.type === 'fade') { mg.drawImage(bufB, 0, 0); mg.globalAlpha = k; mg.drawImage(bufA, 0, 0); }
+     else if (tr.type === 'dip' || tr.type === 'dipWhite') { const c = tr.type === 'dip' ? '#000' : '#fff'; mg.drawImage(k < 0.5 ? bufB : bufA, 0, 0); mg.filter = 'none'; mg.globalAlpha = k < 0.5 ? k * 2 : (1 - k) * 2; mg.fillStyle = c; mg.fillRect(0, 0, W, H); }

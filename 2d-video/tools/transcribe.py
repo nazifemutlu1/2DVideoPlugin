@@ -103,10 +103,14 @@ def main():
         fail("no speech found in the supplied audio")
     source = f"whisper:{model_name}"
     script = a.script or (os.path.join(a.project, cfg["script"]) if cfg.get("script") and cfg["script"].endswith((".txt", ".md")) else None)
-    if script and os.path.exists(script):
+    if script and not os.path.exists(script):
+        fail(f"script not found: {script}")
+    if script:
         txt = open(script, encoding="utf-8").read()
         txt = re.sub(r"^\s*#.*$", "", txt, flags=re.M)  # drop markdown headings
         words = align_script(txt, words)
+        if not words:
+            fail("script produced no words after alignment")
         source += "+script"
     write_timeline(os.path.join(a.project, "timeline"), words, sentences_from_words(words), source)
 

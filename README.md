@@ -23,7 +23,7 @@
 - Chromium для Playwright установлен.
 - `.venv-whisper`: Python 3.12.10, numpy 2.5.4, scipy 1.18.1; faster-whisper 1.2.1 — optional legacy.
 - Системный Python 3.14 **не содержит** numpy/scipy/faster-whisper; используйте runner или venv.
-- `npm test` — PASS 6/6: Python syntax, unit tests (15), ESM syntax, skills runtime, kit 29/29 (8 intentional patches), environment 14/14.
+- `npm test` — PASS 6/6: Python syntax, unit tests (20), ESM syntax, skills runtime, kit 29/29 (12 intentional patches), environment 14/14.
 - Эталонный render sheet — PASS: 14 кадров + contact sheet.
 - 9:16 sheet — PASS: 5 кадров 540×960.
 - Финальный MP4 из `whisper_en_e2e` — H.264 + AAC, 9.893 s, −14.5 LUFS.
@@ -40,8 +40,8 @@
 ```powershell
 python tools/2dvideo.py doctor
 python tools/2dvideo.py check
-python tools/2dvideo.py init --name test --voice "C:/audio/voice.mp3" --title "Тест" --lang ru
-python tools/2dvideo.py timeline --project projects/test
+python tools/2dvideo.py init --name test --voice "C:/audio/voice.mp3" --script "C:/audio/script.srt" --title "Тест" --lang ru
+python tools/2dvideo.py timeline --project projects/test --mode timestamps
 python tools/2dvideo.py beats --project projects/test
 python tools/2dvideo.py status --project projects/test
 python tools/2dvideo.py sheet --project projects/test

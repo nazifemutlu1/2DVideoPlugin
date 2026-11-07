@@ -22,7 +22,8 @@ if (Get-Command ffmpeg -ErrorAction SilentlyContinue) { ffmpeg -version | Select
 Write-Host "`n[4] Python venv"
 if (Test-Path $venv) {
     & $venv --version
-    & $venv -c "import numpy, scipy, faster_whisper; print('numpy', numpy.__version__, '| scipy', scipy.__version__, '| faster-whisper', faster_whisper.__version__)"
+    & $venv -c "import numpy, scipy; print('numpy', numpy.__version__, '| scipy', scipy.__version__)"
+    & $venv -c "import importlib.util as u; print('faster-whisper', 'installed' if u.find_spec('faster_whisper') else 'optional/not installed')"
 } else {
     Write-Host "MISSING $venv"
     Write-Host '  Install with explicit permission:'

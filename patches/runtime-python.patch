@@ -21,9 +21,38 @@
                         capture_output=True)
      if p.returncode != 0:
          sys.exit(f"ffmpeg could not decode {path}: {p.stderr.decode()[-800:]}")
+@@ -60,11 +60,23 @@
+             cur = []
+     return out
+
+
+ def write_timeline(outdir, words, sentences, source):
+-    save_json(os.path.join(outdir, "words.json"), {"source": source, "words": words})
+-    save_json(os.path.join(outdir, "sentences.json"), sentences)
+-    with open(os.path.join(outdir, "transcript.txt"), "w", encoding="utf-8") as f:
+-        for s in sentences:
+-            f.write(f"[{ts(s['start'])} -> {ts(s['end'])}] {s['text']}\n")
++    os.makedirs(outdir, exist_ok=True)
++    stamp = f".tmp-{os.getpid()}"
++    words_tmp = os.path.join(outdir, "words.json" + stamp)
++    sentences_tmp = os.path.join(outdir, "sentences.json" + stamp)
++    transcript_tmp = os.path.join(outdir, "transcript.txt" + stamp)
++    try:
++        save_json(words_tmp, {"source": source, "words": words})
++        save_json(sentences_tmp, sentences)
++        with open(transcript_tmp, "w", encoding="utf-8") as f:
++            for s in sentences:
++                f.write(f"[{ts(s['start'])} -> {ts(s['end'])}] {s['text']}\n")
++        for tmp, final in ((words_tmp, "words.json"), (sentences_tmp, "sentences.json"), (transcript_tmp, "transcript.txt")):
++            os.replace(tmp, os.path.join(outdir, final))
++    finally:
++        for tmp in (words_tmp, sentences_tmp, transcript_tmp):
++            if os.path.exists(tmp):
++                os.remove(tmp)
+     print(f"timeline: {len(words)} words, {len(sentences)} sentences -> {outdir}")
 --- a/tools/doctor.py
 +++ b/tools/doctor.py
-@@ -34,25 +34,44 @@
+@@ -34,25 +34,46 @@
      out = subprocess.run(["node", "-e", "import('playwright').then(p=>{console.log(p.chromium.executablePath())})"], cwd=ROOT, capture_output=True, text=True, timeout=60).stdout.strip()
      chrom = bool(out) and os.path.exists(out)
  except Exception:
@@ -70,3 +99,5 @@
  else:
 -    print("\nAll good. Whisper downloads its model (~150-500 MB) the first time tools/transcribe.py runs.")
 +    print("\nAll good. Whisper uses a local CTranslate2 model; see transcribe.py --model.")
++if fixes:
++    sys.exit(1)

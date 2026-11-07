@@ -32,16 +32,20 @@ PATCHED = {
     "tools/new_project.py": "new-project-safety.patch",
     "tools/parse_script.py": "error-handling.patch",
     "tools/beats.py": "error-handling.patch",
+    "audio/mix.py": "media-fixes.patch",
+    "audio/music.py": "media-fixes.patch",
+    "engine/core.js": "media-fixes.patch",
+    "engine/player.js": "media-fixes.patch",
 }
 
 EXPECTED = {
     "audio/dsp.py": "589d305d94d8acc3",
-    "audio/mix.py": "a48273c523b68c3b",
-    "audio/music.py": "2fb3ce1df2fe5c7d",
+    "audio/mix.py": "f000af0530957ccd",
+    "audio/music.py": "5be684095854f242",
     "audio/sfx.py": "2fa56141e2423718",
-    "engine/core.js": "cb84a01d65e347a9",
+    "engine/core.js": "2a54e4aa66691e37",
     "engine/fx2d.js": "d09f93f6d44366fa",
-    "engine/player.js": "a4555d1692bf274d",
+    "engine/player.js": "35aa5b54a07fd709",
     "engine/rig2d.js": "ec2a665e0aa8ffed",
     "engine/styles.js": "66b00b1b5f87326f",
     "engine/three-kit.js": "02e249e302b95420",
@@ -58,13 +62,13 @@ EXPECTED = {
     "package.json": "20ec9c70ce291e3c",
     # Patched intentionally; see PATCHED above and patches/README.md.
     "player.html": "22a3882b61abe1a1",
-    "render.mjs": "6664e662ce55fb3f",
+    "render.mjs": "5b7941bd89de4d2b",
     "tools/beats.py": "4f066a561c9d6d1d",
-    "tools/common.py": "719d9452a233a962",
-    "tools/doctor.py": "c59b82f9f6ab9569",
-    "tools/new_project.py": "aca57b03253da28a",
-    "tools/parse_script.py": "266581e03bdebcee",
-    "tools/transcribe.py": "a4d710366c0afe61",
+    "tools/common.py": "1bceb5f4df9bbcfc",
+    "tools/doctor.py": "23be632963843aeb",
+    "tools/new_project.py": "f258d6b4e2ddf72f",
+    "tools/parse_script.py": "c924861cf373a73a",
+    "tools/transcribe.py": "99340823b85d8f1f",
 }
 
 

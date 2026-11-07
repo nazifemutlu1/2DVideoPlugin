@@ -53,7 +53,7 @@ This is the original Claude plugin, ported to the current DeepSeek Harness (DSH)
 python tools/2dvideo.py doctor
 python tools/2dvideo.py check
 python tools/2dvideo.py init --name <slug> --voice "<path>" [--script "<path>"] --aspect 16:9 --resolution 1080p --title "<title>" [--captions]
-python tools/2dvideo.py timeline --project projects/<slug> [--script <file>] [--model small]
+python tools/2dvideo.py timeline --project projects/<slug> --mode timestamps
 python tools/2dvideo.py beats --project projects/<slug> [--force]
 python tools/2dvideo.py sheet --project projects/<slug> [--scale 0.5]
 python tools/2dvideo.py preview --project projects/<slug> --from 0 --to 30
@@ -105,7 +105,7 @@ Don't ask about style yet. Defaults: language `ru`, speech language same as outp
 ## Stage 2: Install or check the studio
 Follow `references/install.md`, with the project rule that nothing is installed without permission:
 1. The studio is already installed at `2d-video/` (original kit + eight intentional patches in `patches/`). If it is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` — never overwrite an existing `projects/`.
-2. Run `cd 2d-video; python tools/verify_kit.py` (must report 29/29, including 8 intentional patches) and, from the workspace root, `python tools/2dvideo.py doctor`.
+2. Run `cd 2d-video; python tools/verify_kit.py` (must report 29/29, including 12 intentional patches) and, from the workspace root, `python tools/2dvideo.py doctor`.
 3. Report every MISSING line to the user in one short list with the exact fix command, and **wait for permission** before running `npm install`, `npx playwright install chromium` or `pip install -r requirements.txt`.
 4. Run the example self-test only when the dependencies are present: `cd 2d-video; node render.mjs --project examples/reaction-time --sheet --scale 0.3`.
 

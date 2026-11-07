@@ -116,10 +116,15 @@ def project_dir(project: str) -> Path:
     """
     p = Path(project).expanduser()
     if p.is_absolute():
-        return p.resolve()
-    if p.parts and p.parts[0] == "2d-video":
-        return (ROOT / p).resolve()
-    return (STUDIO / p).resolve()
+        resolved = p.resolve()
+    elif p.parts and p.parts[0] == "2d-video":
+        resolved = (ROOT / p).resolve()
+    else:
+        resolved = (STUDIO / p).resolve()
+    projects = (STUDIO / "projects").resolve()
+    if resolved != projects and projects not in resolved.parents:
+        fail(f"project must stay inside {projects}: {resolved}")
+    return resolved
 
 
 def load_json(path: Path):
@@ -177,7 +182,10 @@ def cmd_timeline(a) -> int:
     cfg_path = pdir / "config.json"
     if not cfg_path.is_file():
         return fail(f"нет {cfg_path} — сначала выполните init")
-    cfg = load_json(cfg_path)
+    try:
+        cfg = load_json(cfg_path)
+    except (OSError, ValueError) as exc:
+        return fail(f"не читается {cfg_path}: {exc}")
     script = str(Path(a.script).expanduser().resolve()) if a.script else (
         str(pdir / cfg["script"]) if cfg.get("script") else None)
     mode = a.mode
@@ -187,6 +195,8 @@ def cmd_timeline(a) -> int:
         else:
             mode = "timestamps" if Path(script).suffix.lower() in (".srt", ".vtt", ".json") else "plain"
     if mode == "timestamps":
+        if not script:
+            return fail("нет script: укажите --script <srt|vtt|json> или config.script")
         return run([PY, "tools/parse_script.py", "--project", project, "--script", script])
     if not a.audio:
         return fail("Whisper работает только с отдельным аудио: укажите --audio <file>. Не подавайте TTS-озвучку автоматически.")
@@ -261,7 +271,10 @@ def cmd_status(a) -> int:
     pdir = project_dir(a.project)
     if not (pdir / "config.json").is_file():
         return fail(f"нет {pdir / 'config.json'}")
-    cfg = load_json(pdir / "config.json")
+    try:
+        cfg = load_json(pdir / "config.json")
+    except (OSError, ValueError) as exc:
+        return fail(f"не читается {pdir / 'config.json'}: {exc}")
     print(f"Проект:      {pdir}")
     print(f"Название:    {cfg.get('title')}")
     print(f"Язык:        {cfg.get('language')} (озвучка: {cfg.get('speechLanguage')})")

@@ -1,6 +1,6 @@
 --- a/render.mjs
 +++ b/render.mjs
-@@ -2,16 +2,18 @@
+@@ -2,82 +2,251 @@
  //   node render.mjs --project projects/my-video                      full video  -> build/video_silent.mp4
  //   node render.mjs --project P --from 30 --to 45 --scale 0.5         preview a range
  //   node render.mjs --project P --sheet                               one still per shot -> build/sheets/*.png
@@ -20,12 +20,30 @@
 
  const ROOT = path.dirname(fileURLToPath(import.meta.url));
  const args = {}; { const a = process.argv.slice(2); for (let i = 0; i < a.length; i++) { if (a[i].startsWith('--')) { const k = a[i].slice(2); const v = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; args[k] = v; } } }
-@@ -19,39 +21,163 @@
+ if (!args.project) { console.error('usage: node render.mjs --project projects/<name> [options]'); process.exit(1); }
  const PROJECT = path.resolve(args.project);
  const BUILD = path.join(PROJECT, 'build'); fs.mkdirSync(BUILD, { recursive: true });
  const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.woff2': 'font/woff2', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml' };
 
- function listScenes(dir, base) { let out = []; if (!fs.existsSync(dir)) return out; for (const f of fs.readdirSync(dir).sort()) { const p = path.join(dir, f); if (fs.statSync(p).isDirectory()) out = out.concat(listScenes(p, `${base}/${f}`)); else if (f.endsWith('.js') && !f.startsWith('_')) out.push(`${base}/${f}`); } return out; }
+-function listScenes(dir, base) { let out = []; if (!fs.existsSync(dir)) return out; for (const f of fs.readdirSync(dir).sort()) { const p = path.join(dir, f); if (fs.statSync(p).isDirectory()) out = out.concat(listScenes(p, `${base}/${f}`)); else if (f.endsWith('.js') && !f.startsWith('_')) out.push(`${base}/${f}`); } return out; }
++function listScenes(dir, base, rootReal = null, seen = new Set()) {
++  if (!fs.existsSync(dir)) return [];
++  rootReal = rootReal || fs.realpathSync(dir);
++  if (!within(fs.realpathSync(PROJECT), rootReal)) return [];
++  let out = [];
++  for (const f of fs.readdirSync(dir).sort()) {
++    const p = path.join(dir, f);
++    let real, st;
++    try { real = fs.realpathSync(p); st = fs.statSync(real); } catch { continue; }
++    if (!within(rootReal, real)) continue;
++    if (st.isDirectory()) {
++      if (seen.has(real)) continue;
++      seen.add(real);
++      out = out.concat(listScenes(real, `${base}/${f}`, rootReal, seen));
++    } else if (f.endsWith('.js') && !f.startsWith('_')) out.push(`${base}/${f}`);
++  }
++  return out;
++}
 +// T1.2C: expose only the renderer page and its declared resources, on loopback only.
 +const ALLOWED_PATHS = ['/player.html', '/__manifest', '/project/', '/engine/', '/node_modules/@fontsource/', '/node_modules/three/'];
 +const isAllowedPath = (url) => url === '/player.html' || url === '/__manifest' || ALLOWED_PATHS.some((prefix) => prefix.endsWith('/') && url.startsWith(prefix));
@@ -120,15 +138,19 @@
 +
 +  // Optional symlink escape check: skip when the host cannot create symlinks.
 +  const link = path.join(BUILD, '.selfcheck-link');
++  let outside = null;
 +  try {
++    outside = fs.mkdtempSync(path.join(os.tmpdir(), '2dv-selfcheck-'));
++    fs.writeFileSync(path.join(outside, 'secret.js'), 'export default 1;\n', 'utf8');
 +    fs.rmSync(link, { force: true, recursive: true });
-+    fs.symlinkSync(os.tmpdir(), link, 'dir');
-+    r = await get('/project/build/.selfcheck-link/');
++    fs.symlinkSync(outside, link, 'dir');
++    r = await get('/project/build/.selfcheck-link/secret.js');
 +    check('symlink escape blocked', r.status === 404, `${r.status}`);
 +  } catch (e) {
 +    check('symlink escape blocked', true, `skipped: ${e.code || e.message}`);
 +  } finally {
 +    try { fs.rmSync(link, { force: true, recursive: true }); } catch {}
++    if (outside) { try { fs.rmSync(outside, { force: true, recursive: true }); } catch {} }
 +  }
 +
 +  const failed = results.filter((x) => !x.ok);
@@ -191,10 +213,69 @@
 +  }
    const b0 = await chromium.launch(LAUNCH); const p0 = await openPlayer(b0);
    const total = await p0.evaluate('window.TOTAL_FRAMES'), fps = FPS;
-   const missing = (await p0.evaluate('window.SHOT_LIST')).filter(s => !s.ok); if (missing.length) console.log(`WARNING: ${missing.length} shots have no scene file yet: ${missing.slice(0, 12).map(s => s.id).join(', ')}${missing.length > 12 ? ' …' : ''}`);
+-  const missing = (await p0.evaluate('window.SHOT_LIST')).filter(s => !s.ok); if (missing.length) console.log(`WARNING: ${missing.length} shots have no scene file yet: ${missing.slice(0, 12).map(s => s.id).join(', ')}${missing.length > 12 ? ' …' : ''}`);
++  const missing = (await p0.evaluate('window.SHOT_LIST')).filter(s => !s.ok);
++  if (missing.length) {
++    console.error(`RENDER FAILED: ${missing.length} shots have no scene file yet: ${missing.slice(0, 12).map(s => s.id).join(', ')}`);
++    process.exitCode = 2;
++    await b0.close();
++    return;
++  }
    await b0.close();
    const f0 = Math.max(0, Math.round((+args.from || 0) * fps)), f1 = Math.min(total, args.to ? Math.round(+args.to * fps) : total);
-@@ -98,8 +224,8 @@
+-  const W = Math.max(1, Math.min(+(args.workers || Math.max(1, Math.min(8, Math.floor(os.cpus().length / 2)))), Math.ceil((f1 - f0) / 24)));
++  const requestedWorkers = +args.workers || Math.max(1, Math.min(8, Math.floor(os.cpus().length / 2)));
++  const W = Math.max(1, Math.min(requestedWorkers, 8, Math.ceil((f1 - f0) / 24)));
+   const partsDir = path.join(BUILD, 'parts'); fs.rmSync(partsDir, { recursive: true, force: true }); fs.mkdirSync(partsDir, { recursive: true });
+   const chunk = Math.ceil((f1 - f0) / W); let done = 0; const t0 = Date.now(); const errs = new Set();
+   console.log(`Rendering frames ${f0}-${f1} (${((f1 - f0) / fps).toFixed(1)} s) with ${W} worker(s)…`);
+   const work = async (k) => {
+     const a = f0 + k * chunk, b = Math.min(f1, a + chunk); if (a >= b) return null;
+-    const browser = await chromium.launch(LAUNCH); const page = await openPlayer(browser);
+-    const out = path.join(partsDir, `part_${String(k).padStart(3, '0')}.mp4`);
+-    const ff = spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-', '-c:v', 'libx264', '-preset', args.preset || 'medium', '-crf', String(args.crf || 18), '-pix_fmt', 'yuv420p', '-r', String(fps), out], { stdio: ['pipe', 'inherit', 'inherit'] });
+-    for (let f = a; f < b; f++) {
+-      const img = await shot(page, f); if (!ff.stdin.write(img)) await new Promise(r => ff.stdin.once('drain', r)); done++;
+-      if (done % 48 === 0) { const el = (Date.now() - t0) / 1000, eta = (el / done) * (f1 - f0 - done); process.stdout.write(`  ${done}/${f1 - f0} frames  ${(done / el).toFixed(2)} fps  elapsed ${fmtT(el)}  eta ${fmtT(eta)}\n`); }
++    let browser = null;
++    try {
++      browser = await chromium.launch(LAUNCH); const page = await openPlayer(browser);
++      const out = path.join(partsDir, `part_${String(k).padStart(3, '0')}.mp4`);
++      const ff = spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-', '-c:v', 'libx264', '-preset', args.preset || 'medium', '-crf', String(args.crf || 18), '-pix_fmt', 'yuv420p', '-r', String(fps), out], { stdio: ['pipe', 'inherit', 'inherit'] });
++      const closed = new Promise((resolve, reject) => {
++        ff.on('error', reject);
++        ff.on('close', code => code === 0 ? resolve() : reject(new Error(`ffmpeg worker ${k} exited with ${code}`)));
++      });
++      for (let f = a; f < b; f++) {
++        const img = await shot(page, f); if (!ff.stdin.write(img)) await new Promise(r => ff.stdin.once('drain', r)); done++;
++        if (done % 48 === 0) { const el = (Date.now() - t0) / 1000, eta = (el / done) * (f1 - f0 - done); process.stdout.write(`  ${done}/${f1 - f0} frames  ${(done / el).toFixed(2)} fps  elapsed ${fmtT(el)}  eta ${fmtT(eta)}\n`); }
++      }
++      (await page.evaluate('window.ERRORS')).forEach(e => errs.add(e));
++      ff.stdin.end();
++      await closed;
++      return out;
++    } finally {
++      if (browser) await browser.close().catch(() => {});
+     }
+-    (await page.evaluate('window.ERRORS')).forEach(e => errs.add(e));
+-    ff.stdin.end(); await new Promise(r => ff.on('close', r)); await browser.close(); return out;
+   };
+   const parts = (await Promise.all([...Array(W)].map((_, k) => work(k)))).filter(Boolean);
++  if (errs.size) {
++    console.error(`RENDER FAILED: ${errs.size} scene error(s); partial output removed`);
++    process.exitCode = 2;
++    return;
++  }
+   const list = path.join(partsDir, 'list.txt'); fs.writeFileSync(list, parts.map(p => `file '${p.replace(/\\/g, '/').replace(/'/g, "'\\''")}'`).join('\n'));
+   const out = path.resolve(args.out || path.join(BUILD, args.from || args.to ? 'preview.mp4' : 'video_silent.mp4'));
+   await new Promise((res, rej) => spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', '-movflags', '+faststart', out], { stdio: 'inherit' }).on('close', c => (c ? rej(new Error('concat failed')) : res())));
+-  if (errs.size) { console.log(`\n${errs.size} shot error(s):`); [...errs].slice(0, 40).forEach(e => console.log('  ' + e)); }
+   console.log(`\nDone: ${out}  (${fmtT((Date.now() - t0) / 1000)})`);
+ }
+ // grid of labelled images, laid out by the browser (works on every OS)
+ async function contactSheet(browser, items, outFile, cols = 4, cellW = 480) {
+   const page = await browser.newPage({ viewport: { width: cols * (cellW + 12) + 12, height: 400 } });
+@@ -98,8 +267,8 @@
    }
    if (args.styles) { const n = all.length / styles.length; await contactSheet(browser, all, path.join(dir, 'style_grid.png'), n, 420); }
    else { const per = 24; for (let i = 0; i < all.length; i += per) await contactSheet(browser, all.slice(i, i + per), path.join(dir, `sheet_${String(i / per + 1).padStart(2, '0')}.png`), 4, 440); }

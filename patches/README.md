@@ -11,6 +11,7 @@ git -c core.autocrlf=false apply ..\patches\render-http-security.patch
 git -c core.autocrlf=false apply ..\patches\runtime-python.patch
 git -c core.autocrlf=false apply ..\patches\new-project-safety.patch
 git -c core.autocrlf=false apply ..\patches\error-handling.patch
+git -c core.autocrlf=false apply ..\patches\media-fixes.patch
 ```
 
 Проверка обратимости:
@@ -22,6 +23,7 @@ git -c core.autocrlf=false apply --reverse --check ..\patches\render-http-securi
 git -c core.autocrlf=false apply --reverse --check ..\patches\runtime-python.patch
 git -c core.autocrlf=false apply --reverse --check ..\patches\new-project-safety.patch
 git -c core.autocrlf=false apply --reverse --check ..\patches\error-handling.patch
+git -c core.autocrlf=false apply --reverse --check ..\patches\media-fixes.patch
 ```
 
 ## Состав
@@ -29,11 +31,12 @@ git -c core.autocrlf=false apply --reverse --check ..\patches\error-handling.pat
 | Патч | Файл | Зачем | SHA-256 результата |
 |---|---|---|---|
 | `player-csp.patch` | `player.html` | CSP: запрет внешних скриптов/фреймов, разрешён import map по SHA-256 | `8a5a4a2bf897dd56d355e5c4466af5d4ea4afd554bb57f62c447affcf301d2ce` |
-| `transcribe-offline.patch` | `tools/transcribe.py` | локальная CTranslate2-модель, `--audio` обязателен, `--model` локальный; `WHISPER_DEVICE`, понятные ошибки | `738ccef4f2fad46337b1b560b9c3aecf72f6b1df99e0ca392dec7138b5c104da` |
-| `render-http-security.patch` | `render.mjs` | T1.2C: только `127.0.0.1`, allowlist, realpath, route guard, GET/HEAD, `--self-check`, ffmpeg check | `797d907110d00547e020e14dd727eb8d92892a788f4c7369001c2cb65057a452` |
-| `runtime-python.patch` | `tools/common.py`, `tools/doctor.py` | R2/R11: единый Python/venv, ленивый numpy, явный интерпретатор, GPU/device в doctor | `common` `719d9452…`, `doctor` `c59b82f9…` |
-| `new-project-safety.patch` | `tools/new_project.py` | R7: slug-only `--name`, containment, атомарное создание, `--force` без удаления сцен | `ad1b1d45ddb66ac1f1b09000b98743d9e3f5bc39bffc10b918c09ee0703cac92` |
-| `error-handling.patch` | `tools/parse_script.py`, `tools/beats.py` | R10: понятные ошибки на пустых/битых таймингах, exit 2 | `parse` `266581e0…`, `beats` `4f066a56…` |
+| `transcribe-offline.patch` | `tools/transcribe.py` | локальная CTranslate2-модель, `--audio` обязателен, `--model` локальный; `WHISPER_DEVICE`, понятные ошибки | `c36a633d1249e49d5d01ee2a436bbc54a2fb7b8a58ac18bebe3fba1aa30232cb` |
+| `render-http-security.patch` | `render.mjs` | T1.2C: loopback, allowlist, realpath, route guard, GET/HEAD, self-check, ffmpeg/worker checks | `a7d11bd68464bbaf81f0dd4df34f1d6407706146a4139cdf2c8ebf60ea8d6e37` |
+| `runtime-python.patch` | `tools/common.py`, `tools/doctor.py` | R2/R11: единый Python/venv, ленивый numpy, явный интерпретатор, GPU/device, атомарный timeline | `common` `1bceb5f4…`, `doctor` `23be6329…` |
+| `new-project-safety.patch` | `tools/new_project.py` | R7: slug-only, containment, atomарное создание, force-update с rollback | `3149f32845cb9206194174ff987afbcdfecbcbd3d4e17e943970f4bf15afec11` |
+| `error-handling.patch` | `tools/parse_script.py`, `tools/beats.py` | R10: пустые/битые тайминги, VTT settings, finite/intervals, exit 2 | `parse` `c924861c…`, `beats` `4f066a56…` |
+| `media-fixes.patch` | `engine/core.js`, `engine/player.js`, `audio/music.py`, `audio/mix.py` | R12: Unicode wordTime, детерминированный whip, короткая музыка, отказ обрезки voice | `core` `2a54e4aa…`, `player` `35aa5b54…`, `music` `5be68409…`, `mix` `f000af05…` |
 
 Исходные хеши (для сверки):
 
@@ -48,4 +51,4 @@ git -c core.autocrlf=false apply --reverse --check ..\patches\error-handling.pat
 - `render-http-security.patch` — **только `render.mjs`**. CSP вынесен в отдельный `player-csp.patch`, чтобы патчи применялись независимо.
 - Исходный внешний патч T1.2C содержал и `player.html`, и `render.mjs`; здесь он разделён.
 - Не запускать `backups/t1.2f-*/restore.ps1` для «починки» тестов: он вернёт незащищённые `render.mjs`/`player.html`.
-- `verify_kit` должен считать эти восемь файлов ожидаемо изменёнными (R1/R2/R7/R10), а не требовать копирования оригинала.
+- `verify_kit` должен считать эти двенадцать файлов ожидаемо изменёнными (R1/R2/R7/R10/R12), а не требовать копирования оригинала.

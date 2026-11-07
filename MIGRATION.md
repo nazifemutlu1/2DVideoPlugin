@@ -79,11 +79,11 @@
 | Проверка | Результат |
 |---|---|
 | Целостность архива (CRC, 43 записи, безопасные пути) | PASS |
-| `verify_kit.py` в `2d-video/` | PASS 29/29 (8 намеренных патчей, см. `patches/`) |
+| `verify_kit.py` в `2d-video/` | PASS 29/29 (12 намеренных патчей, см. `patches/`) |
 | Синтаксис Python | PASS 28/28 |
 | Синтаксис ESM | PASS 15/15 |
 | `npm test` | PASS 6/6, exit 0 |
-| Unit tests | PASS 15/15 |
+| Unit tests | PASS 20/20 |
 | `doctor.py` через runner | PASS: ffmpeg, Node, npm, Chromium, numpy, scipy; Whisper/torch — optional |
 | Раннер: `init` → `timeline` (SRT) → `beats` → `status` | PASS (13 слов, 3 предложения, 5 битов) |
 | Раннер: Whisper EN | PASS (14 слов, 3 предложения) |
@@ -128,8 +128,8 @@ npx playwright install chromium
 
 ```powershell
 python tools/2dvideo.py doctor
-python tools/2dvideo.py init --name test --voice "C:/audio/voice.mp3" --title "Тест" --lang ru
-python tools/2dvideo.py timeline --project projects/test
+python tools/2dvideo.py init --name test --voice "C:/audio/voice.mp3" --script "C:/audio/script.srt" --title "Тест" --lang ru
+python tools/2dvideo.py timeline --project projects/test --mode timestamps
 python tools/2dvideo.py beats --project projects/test
 python tools/2dvideo.py status --project projects/test
 ```

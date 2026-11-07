@@ -36,11 +36,14 @@ def load_any(path, sr=SR):
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--project", required=True); ap.add_argument("--video"); ap.add_argument("--no-music", action="store_true"); ap.add_argument("--no-sfx", action="store_true"); ap.add_argument("--out")
+    ap = argparse.ArgumentParser(); ap.add_argument("--project", required=True); ap.add_argument("--video"); ap.add_argument("--no-music", action="store_true"); ap.add_argument("--no-sfx", action="store_true"); ap.add_argument("--out"); ap.add_argument("--allow-truncate", action="store_true", help="allow a voiceover longer than story duration")
     a = ap.parse_args(); P = a.project
     cfg = json.load(open(os.path.join(P, "config.json"), encoding="utf-8")); story = json.load(open(os.path.join(P, "story", "shots.json"), encoding="utf-8"))
     total = story.get("duration") or story["shots"][-1]["end"]; n = secs(total)
     voice = load_any(os.path.join(P, cfg["voiceover"]))
+    if len(voice) > n + secs(0.15) and not a.allow_truncate:
+        print(f"FAIL: voiceover is {len(voice) / SR:.2f}s but story is {total:.2f}s; regenerate timeline/story or pass --allow-truncate")
+        sys.exit(2)
     voice = np.concatenate([voice, np.zeros((max(0, n - len(voice)), 2), np.float32)])[:n]
     v_rms = rms_db(voice[np.abs(voice).mean(1) > db(-40)]) if np.any(np.abs(voice).mean(1) > db(-40)) else -20
     env = envelope(voice)
@@ -51,7 +54,9 @@ def main():
         if mcfg.get("file"):
             mus = load_any(os.path.join(P, mcfg["file"]))
             reps = int(np.ceil(n / len(mus))); mus = np.concatenate([mus] * reps)[:n]
-            k = secs(3); mus[-k:] *= np.linspace(1, 0, k)[:, None]
+            k = min(secs(3), len(mus))
+            if k > 0:
+                mus[-k:] *= np.linspace(1, 0, k)[:, None]
         else:
             path = os.path.join(P, "build", "music.wav")
             plan = story.get("music") or MUSIC.default_plan(total)

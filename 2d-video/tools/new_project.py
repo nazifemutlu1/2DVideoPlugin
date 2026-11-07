@@ -104,7 +104,39 @@ def main() -> None:
 
         if target.exists():
             # --force updates config/input but preserves existing scenes and user files.
-            shutil.copytree(temp, target, dirs_exist_ok=True)
+            # Reject symlinked destinations and roll back partially replaced files on error.
+            for rel in [Path("config.json"), Path("input"), voice_dst, script_dst]:
+                if not rel:
+                    continue
+                dst = target / rel
+                if dst.is_symlink():
+                    fail(f"refusing symlinked destination: {dst}")
+                if rel.parts[:1] == ("input",) and (target / "input").is_symlink():
+                    fail(f"refusing symlinked input directory: {target / 'input'}")
+            for d in temp.rglob("*"):
+                if d.is_dir():
+                    (target / d.relative_to(temp)).mkdir(parents=True, exist_ok=True)
+            backup = temp / ".backup"
+            updated = []
+            try:
+                for rel in [Path("config.json"), voice_dst] + ([script_dst] if script_dst else []):
+                    src, dst = temp / rel, target / rel
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    old = backup / rel
+                    if dst.exists():
+                        old.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(dst, old)
+                    shutil.copy2(src, dst)
+                    updated.append((dst, old))
+            except Exception:
+                for dst, old in reversed(updated):
+                    if old.exists():
+                        shutil.copy2(old, dst)
+                    elif dst.exists():
+                        dst.unlink()
+                raise
+            if (target / "timeline" / "words.json").exists() or (target / "story" / "shots.json").exists():
+                print("WARNING: existing timeline/story preserved; regenerate timeline/beats after changing voice/script")
         else:
             temp.rename(target)
         print(f"created {target}  (voiceover {dur:.1f}s, {a.aspect} {a.resolution} @ {a.fps}fps, style {a.style})")

@@ -75,3 +75,5 @@ if fixes:
         print("\nRe-run: python tools/doctor.py")
 else:
     print("\nAll good. Whisper uses a local CTranslate2 model; see transcribe.py --model.")
+if fixes:
+    sys.exit(1)
