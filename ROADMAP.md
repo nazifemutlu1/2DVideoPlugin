@@ -1,6 +1,6 @@
 # ROADMAP: 2DVideoPlugin → production-ready
 
-Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3 и R5 выполнены**; R4 пере-сформулирован под TTS и ждёт TTS-фикстуру; следующий исполнимый пункт — R6. Этот файл — источник истины по порядку работ.
+Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3 и R5 выполнены**; R4 пере-сформулирован под TTS и ждёт TTS-фикстуру; R6 выполнен кроме R6.3 (раскладка тестовых проектов); следующий исполнимый пункт — R7. Этот файл — источник истины по порядку работ.
 
 ## Правила выполнения
 
@@ -174,14 +174,23 @@
 
 **Цель:** навести порядок в рабочей копии и сделать структуру предсказуемой. **Упаковка/artifact откладывается до R15**, пока проект не отполирован.
 
-- [ ] R6.1 Удалить/изолировать generated junk: `%SystemDrive%`, `debug.log`, `__pycache__`, `.qoder`, `.whisper-e2e-test` (после подтверждения; всё это уже в `.gitignore`).
+- [x] R6.1 Удалить/изолировать generated junk: `%SystemDrive%`, `debug.log`, `__pycache__`, `.whisper-e2e-test`; `.qoder` оставлен как отдельный Qoder bridge (не нужен для рендера, но не мусор).
 - [x] R6.2 Решить судьбу `original/skills/vizavi-motion`: **оставить отдельным optional overlay/reference**, не включать в основной 2D-runtime; стилевые грамматики — backlog R16. `.qoder` bridge не трогать, пока используется Qoder.
 - [ ] R6.3 Разложить тестовые проекты: `_smoke` и `whisper_en_e2e` — fixtures; `mars_star_robot_test`, `qoder_scene_test`, `vizavi_paper_test` — в `tests/fixtures` или `examples`; пользовательские `projects/*/out` не трогать.
-- [ ] R6.4 Проверить `.gitignore` и `git ls-files` на тяжёлые/сгенерированные файлы: `node_modules`, venv, модели, `build/out`, аудио, `.db`.
-- [ ] R6.5 Зафиксировать структуру проекта в `docs/PROJECT_STRUCTURE.md`: что где лежит, что read-only, что генерируется.
-- [ ] R6.6 Проверить, что в репозитории нет секретов/API-ключей и пользовательских аудио вне fixtures.
+- [x] R6.4 Проверить `.gitignore` и `git ls-files` на тяжёлые/сгенерированные файлы: `node_modules`, venv, модели, `build/out`, аудио, `.db`.
+- [x] R6.5 Зафиксировать структуру проекта в `docs/PROJECT_STRUCTURE.md`: что где лежит, что read-only, что генерируется.
+- [x] R6.6 Проверить, что в репозитории нет секретов/API-ключей и пользовательских аудио вне fixtures.
 
 **DoD:** дерево чистое и понятное; тяжёлые/generated файлы не отслеживаются; тестовые проекты отделены от пользовательских; структура описана. Упаковка здесь **не выполняется**.
+
+**Evidence (2026-11-07):**
+- Удалены после проверки: `%SystemDrive%`, `2d-video/debug.log`, `.whisper-e2e-test`, `__pycache__` вне venv.
+- `.qoder` оставлен как bridge; `original/skills/vizavi-motion` — optional reference.
+- `docs/PROJECT_STRUCTURE.md` создан.
+- `git ls-files`: 181 файл, 2.99 MB; 0 файлов >1 MB; `node_modules`, venv, `__pycache__` не отслеживаются.
+- Секреты/ключи: `git grep` по приватным ключам и API-key шаблонам — совпадений нет.
+- R6.3 отложен: тестовые проекты оставлены в `projects/`, чтобы не ломать существующие пути; перенос — после проверки ссылок.
+
 
 **Решение по vizavi-motion (2026-11-07):** это не рендерер и не style pack, а режиссёрский overlay. Шесть стилей из оригинала — исторические prompt-описания конкретного демо; в `engine/styles.js` их нет. Сейчас `vizavi-motion` остаётся optional-надстройкой, основной pipeline — `make-2d-video` + `video-styles` (5 color-grade пресетов). Интеграция style grammars (ink/paper/pixel/SaaS 2D/2.5D/3D) — отдельная будущая задача R16, не блокирует production-ready.
 
@@ -316,7 +325,7 @@
 | R3 | P0 | CLI mix | R2 | [x] |
 | R4 | P0 | TTS + тайминги (Whisper опционален) | R2 | [~] |
 | R5 | P0/P1 | Skills/runtime | R2 | [x] |
-| R6 | P0/P1 | Порядок и чистота | R0 | [ ] |
+| R6 | P0/P1 | Порядок и чистота | R0 | [~] |
 | R7 | P1 | Безопасность `new_project` | R2 | [ ] |
 | R8 | P1 | Пути `--project` | R2 | [ ] |
 | R9 | P1 | Security-тесты рендера | R1 | [ ] |
