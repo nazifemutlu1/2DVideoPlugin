@@ -1,6 +1,6 @@
 # ROADMAP: 2DVideoPlugin → production-ready
 
-Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3, R5, R7 и R8 выполнены**; R4 пере-сформулирован под **TTS через внешний API** и ждёт API-фикстуру; R6 выполнен кроме R6.3; R9–R12 в основном выполнены; R13 в основном выполнен (CI workflow есть, dsp-тест и прогон GitHub — нет); следующий исполнимый пункт — R14. Этот файл — источник истины по порядку работ.
+Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-08: аудит завершён, **R0–R3, R5, R7 и R8 выполнены**; R4 прошёл TTS-аудио + fallback SRT; R6 выполнен кроме R6.3; R9–R13 в основном выполнены; **R14: 16:9 и 9:16 готовы**, точные word timings провайдера и 4K-кадр остаются; следующий шаг — закрыть R14.2/R14.5 или перейти к R15 baseline. Этот файл — источник истины по порядку работ.
 
 > **Проект не закрывается на R15.** R15 — это стабильный baseline, а не финальная заморозка. После него ожидаются интеграции (TTS, стили, внешний API/сервис); они вынесены в R16–R17. Поэтому упаковка и release-freeze не делаются, пока не определён scope интеграции.
 >
@@ -128,18 +128,18 @@
 
 **Жёсткое правило:** Whisper — отдельный инструмент. Ему всегда подаётся **отдельный аудиофайл** через `--audio`; project `voiceover` и TTS-озвучка **не подставляются автоматически**. TTS-путь (`--mode timestamps`) Whisper не вызывает. API-ключи и вызов TTS-провайдера в этот репозиторий не добавляются.
 
-- [ ] R4.1 Зафиксировать TTS API-контракт: `init --voice <wav|mp3> --script <srt|vtt|json>`; `timeline --mode timestamps`; текст и тайминги берутся из TTS-файла, не из распознавания.
-- [ ] R4.2 Если TTS API не даёт тайминги — требовать SRT/JSON; не подменять их `.en`-моделью и не делать «примерную» раскладку без предупреждения.
-- [ ] R4.3 Проверить, что `--mode auto` для `.srt/.vtt/.json` **не вызывает Whisper**; добавить тест с русским TTS WAV + SRT.
-- [ ] R4.4 Добавить фикстуру русской TTS-озвучки из API + SRT и прогнать `init → timeline → beats → status`; проверить, что words/sentences совпадают с SRT.
+- [x] R4.1 Зафиксировать TTS API-контракт: `init --voice <wav|mp3> --script <srt|vtt|json>`; `timeline --mode timestamps`; текст и тайминги берутся из TTS-файла, не из распознавания.
+- [~] R4.2 TTS API не дал word timings; SRT построен fallback по паузам (`tools/tts_pause_srt.py`), слово-времена интерполированы. Для точного sync нужен API JSON.
+- [~] R4.3 `--mode auto` для `.srt/.vtt/.json` не вызывает Whisper; полный тест с русским SRT ещё не автоматизирован.
+- [x] R4.4 Фикстура русской TTS-озвучки + SRT: `init → timeline → beats → status`; 248 words, 25 sentences, 29 shots.
 - [~] R4.5 Legacy-путь: Whisper только с явным `--audio` и локальным `--model`; `.en` + не-`en` — понятная ошибка; автоскачивания нет.
 - [x] R4.6 Обновить README/install/SKILL: TTS через API + SRT — основной путь; Whisper — опциональный legacy с отдельным аудио.
 - [x] R4.7 Разделить зависимости: core/TTS (`numpy`, `scipy`) и legacy Whisper (`faster-whisper`); `check_env`/`2dvideo check` не требуют `faster_whisper` для TTS-пути.
-- [ ] R4.8 Финальная проверка TTS-ролика через ffprobe/ffmpeg — на готовом MP4, не на этапе timeline; выполняется в конце.
+- [x] R4.8 Финальная проверка TTS-ролика через ffprobe/ffmpeg — на готовом MP4, не на этапе timeline; выполнена.
 
 **DoD:** русский TTS WAV + SRT проходит `init → timeline → beats` без Whisper, без модели и без сети; текст/тайминги совпадают с SRT; legacy-путь с Whisper требует отдельный `--audio`; финальный MP4 проверен ffprobe/ffmpeg в конце.
 
-**Статус:** `[~]` — TTS API-контракт и разделение зависимостей готовы; ждёт API-фикстуру (WAV + SRT/JSON или word timings) и финальную проверку готового MP4.
+**Статус:** `[~]` — TTS API-аудио и SRT прошли полный цикл; точные word timings провайдера отсутствуют, использован паузный fallback.
 
 **Evidence (частично, 2026-11-07):**
 - `timeline --mode whisper` без `--audio` → exit 2, «Whisper работает только с отдельным аудио».
@@ -147,6 +147,13 @@
 - `check_env` → 14 checks, core/TTS = numpy/scipy; `Whisper legacy (optional)` не валит gate.
 - `requirements.txt` — core/TTS; `requirements-whisper.txt` — optional legacy.
 - `--audio` проброшен в `transcribe.py`; project voiceover/TTS туда автоматически не попадают.
+
+**E2E (2026-11-08):**
+- MP3 114.416 s + 248 слов → fallback SRT 25 cues → `init/timeline/beats` → 29 shots.
+- 16:9: 1920×1080, 2780 кадров, 115.839 s, AAC, −14.4 LUFS.
+- 9:16: 1080×1920, 2780 кадров, 115.839 s, AAC, −14.4 LUFS.
+- `blackdetect`/`freezedetect` — без совпадений; визуальный QC — pending.
+- Подробности: [docs/TTS_E2E_LIGHTHOUSE.md](docs/TTS_E2E_LIGHTHOUSE.md).
 
 
 
@@ -356,13 +363,22 @@
 
 ## R14. End-to-end приёмка — P2
 
-- [ ] R14.1 Русская TTS API-озвучка + SRT: `init → timeline → beats → sheet → preview → render → mix`.
+- [~] R14.1 Русская TTS API-озвучка + SRT: полный цикл 16:9 пройден; SRT построен fallback по паузам, word timings интерполированы.
 - [ ] R14.2 Если TTS API не даёт SRT — требовать JSON с word timings; Whisper multilanguage только отдельным `--audio`, не основной путь.
-- [ ] R14.3 16:9 1080p и 9:16 1080p; один 4K-кадр/короткий фрагмент.
-- [ ] R14.4 Проверить **готовый** MP4 в конце: duration, H.264, AAC, −14 LUFS, отсутствие чёрных/битых кадров (ffprobe/ffmpeg).
+- [~] R14.3 16:9 1080p и 9:16 1080p — готово; один 4K-кадр/короткий фрагмент — нет.
+- [x] R14.4 Проверить **готовый** MP4 в конце: duration, H.264, AAC, −14 LUFS, отсутствие чёрных/битых кадров.
 - [ ] R14.5 Проверить установку на чистой машине/VM по README.
 
 **DoD:** два реальных ролика (16:9 и 9:16) проходят полный цикл; приёмка подписана.
+
+**Evidence (2026-11-08):**
+- Вход: MP3 114.416 s + текст 248 слов; fallback SRT 25 cues (`tools/tts_pause_srt.py`).
+- Проект `lighthouse_tts`: 29 shots, 16:9 1920×1080, 2780 кадров, 115.839 s, AAC, −14.4 LUFS.
+- Проект `lighthouse_tts_9x16`: 1080×1920, 2780 кадров, 115.839 s, AAC, −14.4 LUFS.
+- `blackdetect`/`freezedetect` — совпадений нет.
+- Подробности: [docs/TTS_E2E_LIGHTHOUSE.md](docs/TTS_E2E_LIGHTHOUSE.md).
+- Визуальный QC контактных листов — pending: текущая модель не читает PNG.
+
 
 ---
 
@@ -421,7 +437,7 @@
 | R11 | P1 | GPU/производительность | R2 | [~] |
 | R12 | P1 | Документация | R2–R6 | [~] |
 | R13 | P2 | Тесты/CI | R1–R12 | [~] |
-| R14 | P2 | E2E-приёмка | R1–R13 | [ ] |
+| R14 | P2 | E2E-приёмка | R1–R13 | [~] |
 | R15 | P2 | Релиз | R14 | [ ] |
 
 ## Ближайший checkpoint
