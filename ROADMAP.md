@@ -164,13 +164,15 @@
 **Цель:** навести порядок в рабочей копии и сделать структуру предсказуемой. **Упаковка/artifact откладывается до R15**, пока проект не отполирован.
 
 - [ ] R6.1 Удалить/изолировать generated junk: `%SystemDrive%`, `debug.log`, `__pycache__`, `.qoder`, `.whisper-e2e-test` (после подтверждения; всё это уже в `.gitignore`).
-- [ ] R6.2 Решить судьбу `original/skills/vizavi-motion`: оставить как отдельный extra, перенести в `extras/` или удалить; не смешивать с 2D-плагином.
+- [x] R6.2 Решить судьбу `original/skills/vizavi-motion`: **оставить отдельным optional overlay/reference**, не включать в основной 2D-runtime; стилевые грамматики — backlog R16. `.qoder` bridge не трогать, пока используется Qoder.
 - [ ] R6.3 Разложить тестовые проекты: `_smoke` и `whisper_en_e2e` — fixtures; `mars_star_robot_test`, `qoder_scene_test`, `vizavi_paper_test` — в `tests/fixtures` или `examples`; пользовательские `projects/*/out` не трогать.
 - [ ] R6.4 Проверить `.gitignore` и `git ls-files` на тяжёлые/сгенерированные файлы: `node_modules`, venv, модели, `build/out`, аудио, `.db`.
 - [ ] R6.5 Зафиксировать структуру проекта в `docs/PROJECT_STRUCTURE.md`: что где лежит, что read-only, что генерируется.
 - [ ] R6.6 Проверить, что в репозитории нет секретов/API-ключей и пользовательских аудио вне fixtures.
 
 **DoD:** дерево чистое и понятное; тяжёлые/generated файлы не отслеживаются; тестовые проекты отделены от пользовательских; структура описана. Упаковка здесь **не выполняется**.
+
+**Решение по vizavi-motion (2026-11-07):** это не рендерер и не style pack, а режиссёрский overlay. Шесть стилей из оригинала — исторические prompt-описания конкретного демо; в `engine/styles.js` их нет. Сейчас `vizavi-motion` остаётся optional-надстройкой, основной pipeline — `make-2d-video` + `video-styles` (5 color-grade пресетов). Интеграция style grammars (ink/paper/pixel/SaaS 2D/2.5D/3D) — отдельная будущая задача R16, не блокирует production-ready.
 
 ---
 
@@ -279,6 +281,17 @@
 - [ ] R15.6 Передать пользователю: что изменено, что проверено, что осталось.
 
 **DoD:** релиз воспроизводим, P0/P1 не открыты, есть откат, установка на чистой машине проверена.
+
+---
+
+## R16. Backlog: style grammars (optional, после production-ready)
+
+**Не входит в текущий P0/P1.** Шесть стилей Vizavi (ink, paper, pixel, 2D/2.5D/3D SaaS) — это визуальные грамматики, а не color-grade пресеты. Для них нужны новые scene helpers, шрифты/текстуры, тесты и, возможно, ассетный pipeline. Сейчас штатные стили — 5 пресетов `engine/styles.js` (`dusk`, `midnight`, `golden`, `neon`, `storybook`) плюс custom grade.
+
+- [ ] R16.1 Определить, что именно нужно: color grade, visual grammar или image-generation pipeline.
+- [ ] R16.2 Спроектировать API стиля без поломки текущих 5 пресетов.
+- [ ] R16.3 Реализовать 1–2 грамматики как пилот, с тестами и visual QC.
+- [ ] R16.4 Решить, нужны ли внешние image/3D-провайдеры; не добавлять без явного разрешения.
 
 ---
 

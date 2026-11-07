@@ -86,6 +86,7 @@ npx playwright install chromium
 ## Ограничения
 
 - TTS + SRT/JSON не использует Whisper; legacy-путь с Whisper `small.en` ограничен английским.
+- `vizavi-motion` — optional режиссёрский overlay, не часть основного runtime. Шесть Vizavi-стилей (ink/paper/pixel/SaaS) — backlog R16, а не текущие пресеты. Сейчас выбор стиля — 5 color-grade пресетов `engine/styles.js`.
 - Полный длинный рендер 4K не проверялся; проверены sheet, 9:16 sheet, preview и финальный 9.9-секундный MP4.
 - Skills адаптированы под DSH: `ask_user_question`, `bash`/`pwsh`, `job_output`, `read_image`; слэш-команд нет.
 - Художественная оценка кадров требует image-capable модели; текущая модель не читает PNG через `read_image`.
