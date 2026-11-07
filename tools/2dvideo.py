@@ -106,8 +106,20 @@ def run(cmd: list[str], cwd: Path = STUDIO) -> int:
 
 
 def project_dir(project: str) -> Path:
-    p = Path(project)
-    return p if p.is_absolute() else STUDIO / p
+    """Resolve --project consistently from the root or from 2d-video/.
+
+    Supported:
+      projects/x              -> 2d-video/projects/x
+      ./projects/x            -> 2d-video/projects/x
+      2d-video/projects/x     -> root/2d-video/projects/x
+      C:\\...\\projects\\x     -> absolute path
+    """
+    p = Path(project).expanduser()
+    if p.is_absolute():
+        return p.resolve()
+    if p.parts and p.parts[0] == "2d-video":
+        return (ROOT / p).resolve()
+    return (STUDIO / p).resolve()
 
 
 def load_json(path: Path):
@@ -161,6 +173,7 @@ def cmd_timeline(a) -> int:
     if not require_studio() or not require_ffmpeg():
         return 2
     pdir = project_dir(a.project)
+    project = str(pdir)
     cfg_path = pdir / "config.json"
     if not cfg_path.is_file():
         return fail(f"нет {cfg_path} — сначала выполните init")
@@ -174,7 +187,7 @@ def cmd_timeline(a) -> int:
         else:
             mode = "timestamps" if Path(script).suffix.lower() in (".srt", ".vtt", ".json") else "plain"
     if mode == "timestamps":
-        return run([PY, "tools/parse_script.py", "--project", a.project, "--script", script])
+        return run([PY, "tools/parse_script.py", "--project", project, "--script", script])
     if not a.audio:
         return fail("Whisper работает только с отдельным аудио: укажите --audio <file>. Не подавайте TTS-озвучку автоматически.")
     audio = Path(a.audio).expanduser()
@@ -192,10 +205,10 @@ def cmd_timeline(a) -> int:
     model_arg = str(model.resolve())
     audio_arg = str(audio.resolve())
     if mode == "plain":
-        return run([PY, "tools/transcribe.py", "--project", a.project, "--audio", audio_arg, "--script", script,
+        return run([PY, "tools/transcribe.py", "--project", project, "--audio", audio_arg, "--script", script,
                     "--lang", a.lang or cfg.get("speechLanguage") or cfg.get("language") or "ru",
                     "--model", model_arg])
-    return run([PY, "tools/transcribe.py", "--project", a.project, "--audio", audio_arg,
+    return run([PY, "tools/transcribe.py", "--project", project, "--audio", audio_arg,
                 "--lang", a.lang or cfg.get("speechLanguage") or cfg.get("language") or "ru",
                 "--model", model_arg])
 
@@ -203,7 +216,7 @@ def cmd_timeline(a) -> int:
 def cmd_beats(a) -> int:
     if not require_studio():
         return 2
-    cmd = [PY, "tools/beats.py", "--project", a.project]
+    cmd = [PY, "tools/beats.py", "--project", str(project_dir(a.project))]
     if a.force:
         cmd.append("--force")
     return run(cmd)
@@ -212,7 +225,7 @@ def cmd_beats(a) -> int:
 def _render(a, extra: list[str]) -> int:
     if not require_studio() or not require_node_modules():
         return 2
-    return run(["node", "render.mjs", "--project", a.project, *extra])
+    return run(["node", "render.mjs", "--project", str(project_dir(a.project)), *extra])
 
 
 def cmd_sheet(a) -> int:
@@ -237,7 +250,7 @@ def cmd_render(a) -> int:
 def cmd_mix(a) -> int:
     if not require_studio() or not require_ffmpeg() or not require_python_deps(("numpy", "scipy")):
         return 2
-    return run([PY, "audio/mix.py", "--project", a.project])
+    return run([PY, "audio/mix.py", "--project", str(project_dir(a.project))])
 
 
 def cmd_status(a) -> int:
