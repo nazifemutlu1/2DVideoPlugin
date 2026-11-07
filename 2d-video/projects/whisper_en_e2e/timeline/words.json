@@ -1,0 +1,75 @@
+{
+ "source": "whisper:C:\\Users\\vampa\\.cache\\huggingface\\hub\\models--Systran--faster-whisper-small.en\\snapshots\\d1d751a5f8271d482d14ca55d9e2deeebbae577f",
+ "words": [
+  {
+   "word": "Hello",
+   "start": 0.37,
+   "end": 0.93
+  },
+  {
+   "word": "there.",
+   "start": 0.93,
+   "end": 1.45
+  },
+  {
+   "word": "This",
+   "start": 2.89,
+   "end": 2.97
+  },
+  {
+   "word": "is",
+   "start": 2.97,
+   "end": 3.13
+  },
+  {
+   "word": "a",
+   "start": 3.13,
+   "end": 3.31
+  },
+  {
+   "word": "short",
+   "start": 3.31,
+   "end": 3.53
+  },
+  {
+   "word": "English",
+   "start": 3.53,
+   "end": 3.83
+  },
+  {
+   "word": "test.",
+   "start": 3.83,
+   "end": 4.37
+  },
+  {
+   "word": "Whisper",
+   "start": 5.93,
+   "end": 6.19
+  },
+  {
+   "word": "should",
+   "start": 6.19,
+   "end": 6.43
+  },
+  {
+   "word": "transcribe",
+   "start": 6.43,
+   "end": 7.11
+  },
+  {
+   "word": "these",
+   "start": 7.11,
+   "end": 7.33
+  },
+  {
+   "word": "words",
+   "start": 7.33,
+   "end": 7.59
+  },
+  {
+   "word": "accurately.",
+   "start": 7.59,
+   "end": 8.19
+  }
+ ]
+}

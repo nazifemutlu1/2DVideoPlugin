@@ -1,0 +1,23 @@
+{
+  "title": "Evening Street — One Shot",
+  "duration": 7.0,
+  "shots": [
+    {
+      "id": "s001",
+      "start": 0,
+      "end": 7.0,
+      "line": "",
+      "scene": "Evening street: a woman in a teal trench walks past a lit window; a paper cup slips off the sill, she brakes hard and stares.",
+      "set": "evening_street",
+      "bars": null,
+      "in": {
+        "type": "cut"
+      },
+      "sfx": [],
+      "notes": "silent single-shot engine test",
+      "captions": false
+    }
+  ],
+  "music": [],
+  "sfx": []
+}

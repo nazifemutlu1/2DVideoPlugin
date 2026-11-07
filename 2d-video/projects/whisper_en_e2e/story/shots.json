@@ -1,0 +1,78 @@
+{
+ "title": "Whisper EN E2E",
+ "duration": 9.893,
+ "shots": [
+  {
+   "id": "s001",
+   "start": 0.0,
+   "end": 2.74,
+   "line": "Hello there.",
+   "scene": "Low-angle medium shot in a dark signal lab: a small rounded ivory robot boots up on a circular plinth, its cyan visor ignites as a thin line and opens into a soft eye; warm amber key light from camera-left, cool cyan rim, layered translucent panels and drifting dust behind; slow push-in with a foreground glass ring softly out of focus.",
+   "set": "signal_lab",
+   "bars": null,
+   "in": {
+    "type": "cut"
+   },
+   "params": {
+    "beat": "intro",
+    "camera": {"x": [18, 0], "y": [8, 0], "z": [1.0, 1.08], "r": [0, 0], "ease": "inOut"},
+    "robot": {"scale": 1.2, "body": "#e7e0d2", "panel": "#c9bfae", "accent": "#e86a33", "visor": "#65e8ff", "rim": "#ffb27a"},
+    "fx": ["dust", "glow"],
+    "light": {"key": "#ffb070", "rim": "#7ce7ff", "bg": "#12101c"}
+   },
+   "sfx": [],
+   "notes": "Shorts-lite beat 1/3 — introduction. One continuous visual idea: the same small 2.5D robot demonstrates speech recognition in the same signal_lab across all shots. Stylized volumetric forms with bevels, gradients and rim light; not paper cutout and not a black stick figure. Camera x [18,0] y [8,0] z 1.00→1.08, ease inOut. First-shot in is ignored by the player; config fadeIn covers the opening."
+  },
+  {
+   "id": "s002",
+   "start": 2.74,
+   "end": 5.78,
+   "line": "This is a short English test.",
+   "scene": "Medium shot of the same robot speaking: concentric cyan sound rings pulse from its chest as glowing word-glyphs — This, is, a, short, English, test. — pop into the air in sync with the voice; the camera arcs right with a slight roll while the lab panels parallax behind.",
+   "set": "signal_lab",
+   "bars": null,
+   "in": {
+    "type": "cut"
+   },
+   "params": {
+    "beat": "speech",
+    "camera": {"x": [-24, 18], "y": [0, -4], "z": [1.08, 1.12], "r": [0, 0.01], "ease": "inOut"},
+    "fx": ["rings", "dust", "glow"],
+    "voice": {"source": "chest", "wave": "concentric cyan rings", "sync": "word timings"},
+    "glyphs": ["This", "is", "a", "short", "English", "test."]
+   },
+   "sfx": [],
+   "notes": "Shorts-lite beat 2/3 — speech. The chest emitter drives expanding rings; glyphs use the actual word timings from words.json. Camera x [-24,18] y [0,-4] z 1.08→1.12 r 0→0.01, ease inOut. Hard cut on the phrase boundary; keep the robot facing camera-right and its plinth contact shadow. No narrator lip-sync; visor pulses with talkAmount."
+  },
+  {
+   "id": "s003",
+   "start": 5.78,
+   "end": 9.893,
+   "line": "Whisper should transcribe these words accurately.",
+   "scene": "Macro-to-wide reveal: the floating word-glyphs snap into six compact cream timecode cards in a 3×2 grid, each stamped with its Whisper start time; the robot gestures to the finished transcript as the camera pulls back, revealing the full signal lab and settling on a clean final composition.",
+   "set": "signal_lab",
+   "bars": null,
+   "in": {
+    "type": "cut"
+   },
+   "params": {
+    "beat": "result",
+    "camera": {"x": [12, 0], "y": [-4, 0], "z": [1.18, 1.0], "r": [0.01, 0], "ease": "inOut"},
+    "cards": [
+     {"word": "Whisper", "t": 5.93},
+     {"word": "should", "t": 6.19},
+     {"word": "transcribe", "t": 6.43},
+     {"word": "these", "t": 7.11},
+     {"word": "words", "t": 7.33},
+     {"word": "accurately.", "t": 7.59}
+    ],
+    "cardLayout": {"wide": [3, 2], "vertical": [1, 6]},
+    "fx": ["dust", "glow", "snap"],
+    "label": "TRANSCRIPT"
+   },
+   "sfx": [],
+   "notes": "Shorts-lite beat 3/3 — result. Cards carry real word start times: Whisper 5.93, should 6.19, transcribe 6.43, these 7.11, words 7.33, accurately. 7.59. 16:9 layout 3×2; 9:16 layout 1×6 vertical rail. Camera x [12,0] y [-4,0] z 1.18→1.00 r 0.01→0, ease inOut; pull back after the last word. End on a clean hold for ~1.5 s. Hard cut in; no new set. This is the single chosen treatment, not a variant set."
+  }
+ ],
+ "music": []
+}

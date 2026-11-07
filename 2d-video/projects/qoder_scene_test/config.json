@@ -1,0 +1,23 @@
+{
+  "title": "Evening Street — One Shot",
+  "language": "ru",
+  "speechLanguage": "ru",
+  "aspect": "16:9",
+  "resolution": "720p",
+  "fps": 24,
+  "style": "dusk",
+  "duration": 7.0,
+  "captions": false,
+  "bars": null,
+  "fadeIn": 0.35,
+  "fadeOut": 0.6,
+  "music": {
+    "enabled": false,
+    "gainDb": 0
+  },
+  "sfx": {
+    "enabled": false,
+    "gainDb": 0
+  },
+  "loudness": -14
+}

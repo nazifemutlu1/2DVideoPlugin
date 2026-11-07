@@ -1,0 +1,25 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#080b12}canvas{display:block}</style></head>
+<body><canvas id="c" width="1600" height="900"></canvas>
+<script type="module">
+import { drawRobot, poseAt, P } from './scenes/robot.js';
+const c = document.getElementById('c'), g = c.getContext('2d');
+const grad = g.createLinearGradient(0, 0, 0, 900);
+grad.addColorStop(0, '#0a1020'); grad.addColorStop(0.6, '#12202e'); grad.addColorStop(1, '#081018');
+g.fillStyle = grad; g.fillRect(0, 0, 1600, 900);
+// ground line
+g.fillStyle = 'rgba(0,0,0,.5)'; g.fillRect(0, 780, 1600, 120);
+g.strokeStyle = 'rgba(120,200,210,.2)'; g.beginPath(); g.moveTo(0, 780); g.lineTo(1600, 780); g.stroke();
+
+const poses = [
+  P({ star: [38, -146], eyeOpen: .95, smile: .3, headTilt: 3 }),
+  P({ star: [42, -194], eyeOpen: 1.05, mouthOpen: .25, headTilt: 5, hipY: -2, lean: -1 }),
+  P({ star: [42, -203], eyeOpen: .3, happy: .9, smile: .9, headTilt: 2 }),
+];
+for (let i = 0; i < 3; i++) {
+  g.save(); g.translate(i * 533, 0);
+  drawRobot(g, { x: 267, y: 780, s: 1.9, facing: -1, t: 1.2 + i * .9, pose: poses[i], starI: .7 + i * .25 });
+  g.restore();
+}
+window.DONE = true;
+</script></body></html>

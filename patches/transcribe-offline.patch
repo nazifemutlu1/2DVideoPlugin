@@ -1,0 +1,37 @@
+--- a/tools/transcribe.py
++++ b/tools/transcribe.py
+@@ -45,26 +45,31 @@
+ 
+ def main():
+     ap = argparse.ArgumentParser()
+     ap.add_argument("--project", required=True)
+     ap.add_argument("--audio", help="defaults to config.json voiceover")
+-    ap.add_argument("--model", default="small", help="tiny|base|small|medium|large-v3 (bigger = slower, more accurate)")
++    ap.add_argument("--model", default=None, help="local CTranslate2 model directory (offline; no auto-download)")
+     ap.add_argument("--lang", default=None, help="source language; defaults to project speechLanguage/language, then ru; auto detects")
+     ap.add_argument("--script", help="plain-text script to align (keeps exact wording)")
+     a = ap.parse_args()
+     cfg = load_json(os.path.join(a.project, "config.json"))
+     lang = a.lang or cfg.get("speechLanguage") or cfg.get("language") or "ru"
+     lang = None if lang == "auto" else lang
+     audio_path = a.audio or os.path.join(a.project, cfg["voiceover"])
++    if not a.model:
++        sys.exit("--model must point to a local CTranslate2 Whisper model directory")
++    if not os.path.isdir(a.model):
++        sys.exit(f"Whisper model directory not found: {a.model}")
++    os.environ.setdefault("HF_HUB_OFFLINE", "1")
+     from faster_whisper import WhisperModel  # pip install faster-whisper
+     try:
+         import torch  # noqa
+         device = "cuda" if torch.cuda.is_available() else "cpu"
+     except Exception:
+         device = "cpu"
+-    model_name = a.model + (".en" if lang == "en" and a.model in ("tiny", "base", "small", "medium") else "")
+-    print(f"loading whisper '{model_name}' on {device} (first run downloads the model)…")
++    model_name = os.path.abspath(a.model)
++    print(f"loading whisper '{model_name}' on {device}…")
+     model = WhisperModel(model_name, device=device, compute_type="float16" if device == "cuda" else "int8")
+     audio = load_audio(audio_path, 16000)
+     segs, info = model.transcribe(audio, language=lang, word_timestamps=True, vad_filter=True, beam_size=5)
+     words = []
+     for s in segs:

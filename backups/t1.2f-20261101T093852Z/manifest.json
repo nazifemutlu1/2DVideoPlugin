@@ -1,0 +1,62 @@
+﻿{
+    "task":  "T1.2F",
+    "kind":  "pre-install backup of 2DVideoPlugin renderer sources",
+    "createdAt":  "2026-11-01T09:38:52.8139653Z",
+    "target":  "F:\\AI\\2DVideoPlugin\\2d-video",
+    "patch":  {
+                  "path":  "F:\\AI\\ViralFactoryStudio\\docs\\qa\\evidence\\t1.2c-render2d-compat\\patch\\render2d-http-security.patch",
+                  "sha256":  "0d9fc2a91a56d9a23a3536126a9a856323a16aa1ad1cf08647c4a8c2248675b7",
+                  "bytes":  7828
+              },
+    "files":  [
+                  {
+                      "name":  "render.mjs",
+                      "originalSha256":  "1d33ddb3e2fc9b0719a06e333c3b2762d506c281a9f301a176c4648b44ba0a35",
+                      "backupSha256":  "1d33ddb3e2fc9b0719a06e333c3b2762d506c281a9f301a176c4648b44ba0a35",
+                      "bytes":  10183,
+                      "originalMtime":  "2026-10-24T08:51:27.6770410Z",
+                      "backupPath":  "F:\\AI\\2DVideoPlugin\\backups\\t1.2f-20261101T093852Z\\render.mjs"
+                  },
+                  {
+                      "name":  "player.html",
+                      "originalSha256":  "bcec243e446e9aca1c19ff48e1969bef467813882aa74ea8dbf00a27eb9f2654",
+                      "backupSha256":  "bcec243e446e9aca1c19ff48e1969bef467813882aa74ea8dbf00a27eb9f2654",
+                      "bytes":  422,
+                      "originalMtime":  "2026-10-24T08:51:27.6790431Z",
+                      "backupPath":  "F:\\AI\\2DVideoPlugin\\backups\\t1.2f-20261101T093852Z\\player.html"
+                  }
+              ],
+    "untouchedBaseline":  {
+                              "package.json":  "e90a9479cc1c980fa191e977ccc3bffda7f790b7ed495e645c5f7657126d2c9f",
+                              "engine":  [
+                                             {
+                                                 "file":  "core.js",
+                                                 "sha256":  "7a2f9c32cc71381fe4f3ffc8c502a5d168947240cfdba22ebaacc634e5edec78"
+                                             },
+                                             {
+                                                 "file":  "fx2d.js",
+                                                 "sha256":  "a1953d416cf0fe5d4150d0e88ffc481437f38df6a2c9db4de7303e9e36f71692"
+                                             },
+                                             {
+                                                 "file":  "player.js",
+                                                 "sha256":  "7250437edfc08dc6ae23faf26d8a0538b4bcf493dc322d0d8e714eb245946d4b"
+                                             },
+                                             {
+                                                 "file":  "rig2d.js",
+                                                 "sha256":  "342742360c421ac3e7fa2dfa045bcc0023d97fdac9960287c16bbb932e7ec3ae"
+                                             },
+                                             {
+                                                 "file":  "styles.js",
+                                                 "sha256":  "7a50601fa6d19b9663dd545d46b6e34d8f9dac2d22ee04df4db88f8a4e38d128"
+                                             },
+                                             {
+                                                 "file":  "three-kit.js",
+                                                 "sha256":  "076a7c045c14cadf3831e4af8dfd5350eda5c094b1b3f0037ab1ab1ee0d0dac5"
+                                             },
+                                             {
+                                                 "file":  "ui2d.js",
+                                                 "sha256":  "abfddc500828001cbe13bda27dea804a5f6b2b93b6b7baf00ac4f4f069a865de"
+                                             }
+                                         ]
+                          }
+}

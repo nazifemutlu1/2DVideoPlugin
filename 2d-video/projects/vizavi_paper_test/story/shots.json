@@ -1,0 +1,73 @@
+{
+  "title": "Paper Balloon — Vizavi Motion Test",
+  "duration": 12.0,
+  "shots": [
+    {
+      "id": "s001",
+      "start": 0.0,
+      "end": 2.85,
+      "line": "",
+      "scene": "Low-angle street canyon: a small cream paper kid leans back on planted feet, gripping a taut twine tied to an enormous coral paper balloon cropped by the top of frame; the balloon tugs, the kid's heels slide, paper dust drifts; slow upward push-in with a tilted vertical composition.",
+      "set": "paper_street",
+      "bars": null,
+      "in": { "type": "cut" },
+      "params": {},
+      "notes": "Beat 1, variant A: scale and weight first. Balloon cropped, hero small. Camera push-in and slight roll; no text.",
+      "captions": false
+    },
+    {
+      "id": "s002",
+      "start": 2.85,
+      "end": 4.55,
+      "line": "",
+      "scene": "Insert close-up: two paper hands clamp a rolled-paper handle, the twine knot creaks at the center, a shoe heel digs into a cracked paper sidewalk below; the string jerks upward on the last beat, tearing dust from the fibers.",
+      "set": "paper_street",
+      "bars": null,
+      "in": { "type": "cut" },
+      "params": {},
+      "notes": "Beat 1 insert: contact, friction, tension. Handheld micro-shake; blurred street behind. Cut on the upward jerk.",
+      "captions": false
+    },
+    {
+      "id": "s003",
+      "start": 4.55,
+      "end": 7.75,
+      "line": "",
+      "scene": "Vertical lift-off: the balloon rips the kid off the pavement; camera tracks up as facades, windows and rooftops slide down in layered parallax, the kid flails then steadies, paper scraps and ghosted trailing shapes mark the acceleration, a foreground cloud wipes the frame at the end.",
+      "set": "paper_street",
+      "bars": null,
+      "in": { "type": "cut" },
+      "params": {},
+      "notes": "Beat 2, variant A: rise, inertia, falling city. Camera lags the hero; ghost copies are an imitation of smearing, not real motion blur.",
+      "captions": false
+    },
+    {
+      "id": "s004",
+      "start": 7.75,
+      "end": 10.05,
+      "line": "",
+      "scene": "Aerial paper diorama: the balloon hangs high above a layered cut-paper city; the kid dangles from the handle, looks down in awe, then pulls his knees up and grips with both hands as the camera eases back and a paper cloud clears the foreground.",
+      "set": "paper_aerial",
+      "bars": null,
+      "in": { "type": "cut" },
+      "params": {},
+      "notes": "Beat 3, variant A part 1: reveal scale of the city; high-altitude vertical composition; camera crane/back with cloud match cut.",
+      "captions": false
+    },
+    {
+      "id": "s005",
+      "start": 10.05,
+      "end": 12.0,
+      "line": "",
+      "scene": "The kid sits on the balloon crown, legs dangling, one hand on the crown strap, the long twine curling down toward the city; he throws both arms up, the camera cranes out to reveal the whole balloon and the paper city below, then the frame fades.",
+      "set": "paper_aerial",
+      "bars": null,
+      "in": { "type": "fade", "dur": 0.3 },
+      "params": {},
+      "notes": "Beat 3, variant A part 2: resolution and iconic final frame. Camera pull-out reveals scale; long string sells height.",
+      "captions": false
+    }
+  ],
+  "music": [],
+  "sfx": []
+}

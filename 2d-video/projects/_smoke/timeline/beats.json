@@ -1,0 +1,42 @@
+[
+ {
+  "i": 0,
+  "start": 0.0,
+  "speechStart": 0.0,
+  "speechEnd": 0.976,
+  "text": "Первый кадр:",
+  "end": 0.864
+ },
+ {
+  "i": 1,
+  "start": 0.864,
+  "speechStart": 1.014,
+  "speechEnd": 3.45,
+  "text": "тишина и ожидание. Второй кадр:",
+  "end": 3.337
+ },
+ {
+  "i": 2,
+  "start": 3.337,
+  "speechStart": 3.487,
+  "speechEnd": 4.932,
+  "text": "движение начинается.",
+  "end": 4.85
+ },
+ {
+  "i": 3,
+  "start": 4.85,
+  "speechStart": 5.0,
+  "speechEnd": 6.274,
+  "text": "Третий кадр:",
+  "end": 6.174
+ },
+ {
+  "i": 4,
+  "start": 6.174,
+  "speechStart": 6.324,
+  "speechEnd": 7.944,
+  "text": "финальная точка.",
+  "end": 9.444
+ }
+]

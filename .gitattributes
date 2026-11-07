@@ -1,0 +1,19 @@
+# Keep source and patches LF-only; Windows checkout must not rewrite them.
+* text=auto eol=lf
+*.patch text eol=lf
+*.md text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.py text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+
+# Binary assets must not be normalized.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.mp4 binary
+*.wav binary
+*.mp3 binary
+*.woff2 binary
+*.plugin binary

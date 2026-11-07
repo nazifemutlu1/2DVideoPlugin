@@ -1,0 +1,26 @@
+[
+ {
+  "i": 0,
+  "start": 0.0,
+  "speechStart": 0.37,
+  "speechEnd": 1.45,
+  "text": "Hello there.",
+  "end": 2.74
+ },
+ {
+  "i": 1,
+  "start": 2.74,
+  "speechStart": 2.89,
+  "speechEnd": 4.37,
+  "text": "This is a short English test.",
+  "end": 5.78
+ },
+ {
+  "i": 2,
+  "start": 5.78,
+  "speechStart": 5.93,
+  "speechEnd": 8.19,
+  "text": "Whisper should transcribe these words accurately.",
+  "end": 9.893
+ }
+]

@@ -1,0 +1,25 @@
+{
+ "language": "en",
+ "speechLanguage": "en",
+ "title": "Whisper EN E2E",
+ "aspect": "16:9",
+ "resolution": "720p",
+ "fps": 24,
+ "style": "dusk",
+ "voiceover": "input/voiceover.wav",
+ "script": null,
+ "duration": 9.893,
+ "captions": false,
+ "bars": null,
+ "fadeIn": 0.5,
+ "fadeOut": 0.8,
+ "music": {
+  "enabled": true,
+  "gainDb": -17
+ },
+ "sfx": {
+  "enabled": true,
+  "gainDb": -6
+ },
+ "loudness": -14
+}

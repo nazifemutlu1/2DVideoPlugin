@@ -1,0 +1,41 @@
+# Node / JS artifacts
+node_modules/
+2d-video/node_modules/
+
+# Python virtualenv, bytecode, caches
+.venv-whisper/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Render outputs and QC artifacts
+2d-video/examples/*/build/
+2d-video/projects/*/build/
+2d-video/projects/*/out/
+2d-video/projects/*/review/
+build/
+out/
+
+# Logs and local debug output
+*.log
+debug.log
+
+# Runtime state of Sharrowkin/DSH
+.sharrowkin/brain.db
+.sharrowkin/skills.sqlite
+.sharrowkin/context/
+.sharrowkin/checkpoints/
+.sharrowkin/snapshots/
+
+# Junk left by earlier packaging attempts
+%SystemDrive%/
+.qoder/
+.whisper-e2e-test/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,77 @@
+{
+ "title": "Smoke",
+ "duration": 9.444,
+ "shots": [
+  {
+   "id": "s001",
+   "start": 0.0,
+   "end": 0.864,
+   "line": "Первый кадр:",
+   "scene": "TODO",
+   "set": null,
+   "bars": null,
+   "in": {
+    "type": "cut"
+   },
+   "sfx": [],
+   "notes": ""
+  },
+  {
+   "id": "s002",
+   "start": 0.864,
+   "end": 3.337,
+   "line": "тишина и ожидание. Второй кадр:",
+   "scene": "TODO",
+   "set": null,
+   "bars": null,
+   "in": {
+    "type": "cut"
+   },
+   "sfx": [],
+   "notes": ""
+  },
+  {
+   "id": "s003",
+   "start": 3.337,
+   "end": 4.85,
+   "line": "движение начинается.",
+   "scene": "TODO",
+   "set": null,
+   "bars": null,
+   "in": {
+    "type": "cut"
+   },
+   "sfx": [],
+   "notes": ""
+  },
+  {
+   "id": "s004",
+   "start": 4.85,
+   "end": 6.174,
+   "line": "Третий кадр:",
+   "scene": "TODO",
+   "set": null,
+   "bars": null,
+   "in": {
+    "type": "cut"
+   },
+   "sfx": [],
+   "notes": ""
+  },
+  {
+   "id": "s005",
+   "start": 6.174,
+   "end": 9.444,
+   "line": "финальная точка.",
+   "scene": "TODO",
+   "set": null,
+   "bars": null,
+   "in": {
+    "type": "cut"
+   },
+   "sfx": [],
+   "notes": ""
+  }
+ ],
+ "music": []
+}

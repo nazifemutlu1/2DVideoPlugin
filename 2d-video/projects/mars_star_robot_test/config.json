@@ -1,0 +1,23 @@
+{
+  "title": "Mars Star Robot",
+  "language": "en",
+  "speechLanguage": "en",
+  "aspect": "16:9",
+  "resolution": "720p",
+  "fps": 24,
+  "style": "dusk",
+  "duration": 7.4,
+  "captions": false,
+  "bars": "wide",
+  "fadeIn": 0.35,
+  "fadeOut": 0.6,
+  "music": {
+    "enabled": false,
+    "gainDb": 0
+  },
+  "sfx": {
+    "enabled": false,
+    "gainDb": 0
+  },
+  "loudness": -14
+}

@@ -1,0 +1,23 @@
+{
+  "title": "Paper Balloon — Vizavi Motion Test",
+  "language": "ru",
+  "speechLanguage": "ru",
+  "aspect": "9:16",
+  "resolution": "1080p",
+  "fps": 24,
+  "style": "golden",
+  "duration": 12.0,
+  "captions": false,
+  "bars": null,
+  "fadeIn": 0.4,
+  "fadeOut": 0.65,
+  "music": {
+    "enabled": false,
+    "gainDb": 0
+  },
+  "sfx": {
+    "enabled": false,
+    "gainDb": 0
+  },
+  "loudness": -14
+}

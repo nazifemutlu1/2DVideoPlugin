@@ -1,0 +1,3 @@
+[00:00.37 -> 00:01.45] Hello there.
+[00:02.89 -> 00:04.37] This is a short English test.
+[00:05.93 -> 00:08.19] Whisper should transcribe these words accurately.

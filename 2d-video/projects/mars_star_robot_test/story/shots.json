@@ -1,0 +1,44 @@
+{
+  "title": "Mars Star Robot",
+  "duration": 7.4,
+  "shots": [
+    {
+      "id": "s001",
+      "start": 0,
+      "end": 2.6,
+      "line": "",
+      "scene": "Wide cinematic reveal: a small teal robot stands alone on the dusty red surface of Mars, cupping a dim golden star. The camera drifts in over layered cliffs and craters.",
+      "set": "mars",
+      "bars": "wide",
+      "in": { "type": "cut" },
+      "captions": false,
+      "params": { "beat": "reveal" }
+    },
+    {
+      "id": "s002",
+      "start": 2.6,
+      "end": 5.0,
+      "line": "",
+      "scene": "Medium shot: the robot gently lifts the tiny star to its chest; the light swells and warms its face while its eyes widen in awe.",
+      "set": "mars",
+      "bars": "wide",
+      "in": { "type": "cut" },
+      "captions": false,
+      "params": { "beat": "lift" }
+    },
+    {
+      "id": "s003",
+      "start": 5.0,
+      "end": 7.4,
+      "line": "",
+      "scene": "Intimate close-up: the star blazes softly between the robot's hands, gilding its face. It settles into a quiet, wondering smile as the camera comes to rest.",
+      "set": "mars",
+      "bars": "wide",
+      "in": { "type": "cut" },
+      "captions": false,
+      "params": { "beat": "wonder" }
+    }
+  ],
+  "music": [],
+  "sfx": []
+}
