@@ -9,6 +9,7 @@
 original/             распакованный оригинал, read-only reference
 2d-video/             рабочая студия: renderer, engine, tools, audio, examples
 .sharrowkin/          skills + QA-скрипты + runtime state (часть ignored)
+Ifverse/              reserved future-integration workspace; НЕ ТРОГАТЬ (R17)
 tools/2dvideo.py      CLI-обёртка над студией
 patches/              намеренные отличия от оригинала
 requirements.txt      core/TTS: numpy, scipy
