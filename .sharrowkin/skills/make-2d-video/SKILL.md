@@ -104,8 +104,8 @@ Don't ask about style yet. Defaults: language `ru`, speech language same as outp
 
 ## Stage 2: Install or check the studio
 Follow `references/install.md`, with the project rule that nothing is installed without permission:
-1. The studio is already installed at `2d-video/` (original kit + six intentional patches in `patches/`). If it is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` — never overwrite an existing `projects/`.
-2. Run `cd 2d-video; python tools/verify_kit.py` (must report 29/29, including 6 intentional patches) and, from the workspace root, `python tools/2dvideo.py doctor`.
+1. The studio is already installed at `2d-video/` (original kit + eight intentional patches in `patches/`). If it is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` — never overwrite an existing `projects/`.
+2. Run `cd 2d-video; python tools/verify_kit.py` (must report 29/29, including 8 intentional patches) and, from the workspace root, `python tools/2dvideo.py doctor`.
 3. Report every MISSING line to the user in one short list with the exact fix command, and **wait for permission** before running `npm install`, `npx playwright install chromium` or `pip install -r requirements.txt`.
 4. Run the example self-test only when the dependencies are present: `cd 2d-video; node render.mjs --project examples/reaction-time --sheet --scale 0.3`.
 

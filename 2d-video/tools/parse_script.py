@@ -12,9 +12,14 @@ Accepted:
 Word timings inside a cue are spread proportionally to word length (good enough for cutting & captions;
 run tools/transcribe.py with --script instead if you need exact word timing).
 """
-import argparse, json, os, re, sys
+import argparse, json, os, re, shutil, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from common import load_json, probe_duration, sentences_from_words, write_timeline
+
+
+def die(message: str, code: int = 2):
+    print(f"FAIL: {message}")
+    sys.exit(code)
 
 TS = r"(?:(\d+):)?(\d{1,2}):(\d{2}(?:[.,]\d+)?)|(\d+(?:\.\d+)?)"
 
@@ -80,32 +85,49 @@ def main():
     ap.add_argument("--project", required=True)
     ap.add_argument("--script", required=True)
     a = ap.parse_args()
-    cfg = load_json(os.path.join(a.project, "config.json"))
+    try:
+        cfg = load_json(os.path.join(a.project, "config.json"))
+    except (OSError, ValueError) as exc:
+        die(f"cannot read project config: {exc}")
+    if not shutil.which("ffprobe"):
+        die("ffprobe not found on PATH")
+    if cfg.get("voiceover") and not os.path.isfile(os.path.join(a.project, cfg["voiceover"])):
+        die(f"voiceover not found: {os.path.join(a.project, cfg['voiceover'])}")
     total = probe_duration(os.path.join(a.project, cfg["voiceover"])) if cfg.get("voiceover") else None
     path = a.script
-    txt = open(path, encoding="utf-8-sig").read()
+    if not os.path.isfile(path):
+        die(f"script not found: {path}")
+    try:
+        txt = open(path, encoding="utf-8-sig").read()
+    except OSError as exc:
+        die(f"cannot read script: {exc}")
     ext = os.path.splitext(path)[1].lower()
     words = None
-    if ext in (".srt", ".vtt"):
-        cues = parse_srt_vtt(txt)
-    elif ext == ".json":
-        d = json.loads(txt)
-        if isinstance(d, dict) and "words" in d:
-            words = [{"word": w.get("word") or w.get("text"), "start": to_sec(w["start"]), "end": to_sec(w["end"])} for w in d["words"]]
-            cues = []
+    try:
+        if ext in (".srt", ".vtt"):
+            cues = parse_srt_vtt(txt)
+        elif ext == ".json":
+            d = json.loads(txt)
+            if isinstance(d, dict) and "words" in d:
+                words = [{"word": w.get("word") or w.get("text"), "start": to_sec(w["start"]), "end": to_sec(w["end"])} for w in d["words"]]
+                cues = []
+            else:
+                seg = d.get("segments", d) if isinstance(d, dict) else d
+                cues = [{"start": to_sec(s["start"]), "end": to_sec(s["end"]) if s.get("end") is not None else None, "text": s.get("text", "").strip()} for s in seg]
         else:
-            seg = d.get("segments", d) if isinstance(d, dict) else d
-            cues = [{"start": to_sec(s["start"]), "end": to_sec(s["end"]) if s.get("end") is not None else None, "text": s.get("text", "").strip()} for s in seg]
-    else:
-        cues = parse_txt(txt)
+            cues = parse_txt(txt)
+    except (ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
+        die(f"invalid script/config: {exc}")
     if words is None:
         if not cues:
-            sys.exit("No timestamps found. Use tools/transcribe.py --script <file> to time a plain script from the voiceover.")
+            die("no timestamps found; use tools/transcribe.py --script <file> or provide SRT/VTT/JSON timestamps")
         cues.sort(key=lambda c: c["start"])
         words = spread_words(cues, total or (cues[-1]["start"] + 4))
         sentences = [{"i": i, "start": round(c["start"], 3), "end": round(c.get("end") or (cues[i + 1]["start"] if i + 1 < len(cues) else (total or c["start"] + 4)), 3), "text": c["text"]} for i, c in enumerate(cues)]
     else:
         sentences = sentences_from_words(words)
+    if not words:
+        die("script produced no words/timestamps")
     if total and words[-1]["end"] > total + 1:
         print(f"WARNING: script runs to {words[-1]['end']:.1f}s but the voiceover is {total:.1f}s — check the timestamps match this audio.")
     write_timeline(os.path.join(a.project, "timeline"), words, sentences, f"script:{os.path.basename(path)}")

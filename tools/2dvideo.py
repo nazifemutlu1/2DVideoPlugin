@@ -225,6 +225,8 @@ def cmd_beats(a) -> int:
 def _render(a, extra: list[str]) -> int:
     if not require_studio() or not require_node_modules():
         return 2
+    if "--sheet" not in extra and not require_ffmpeg():
+        return 2
     return run(["node", "render.mjs", "--project", str(project_dir(a.project)), *extra])
 
 

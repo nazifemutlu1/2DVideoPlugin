@@ -1,0 +1,130 @@
+--- a/tools/parse_script.py
++++ b/tools/parse_script.py
+@@ -10,13 +10,18 @@
+                          0:12 - 0:15 text      12.5-15.0: text     [00:12 - 00:15] text
+                        lines without a timestamp are appended to the previous cue.
+ Word timings inside a cue are spread proportionally to word length (good enough for cutting & captions;
+ run tools/transcribe.py with --script instead if you need exact word timing).
+ """
+-import argparse, json, os, re, sys
++import argparse, json, os, re, shutil, sys
+ sys.path.insert(0, os.path.dirname(__file__))
+ from common import load_json, probe_duration, sentences_from_words, write_timeline
++
++
++def die(message: str, code: int = 2):
++    print(f"FAIL: {message}")
++    sys.exit(code)
+
+ TS = r"(?:(\d+):)?(\d{1,2}):(\d{2}(?:[.,]\d+)?)|(\d+(?:\.\d+)?)"
+
+
+ def to_sec(m):
+@@ -78,36 +83,53 @@
+ def main():
+     ap = argparse.ArgumentParser()
+     ap.add_argument("--project", required=True)
+     ap.add_argument("--script", required=True)
+     a = ap.parse_args()
+-    cfg = load_json(os.path.join(a.project, "config.json"))
++    try:
++        cfg = load_json(os.path.join(a.project, "config.json"))
++    except (OSError, ValueError) as exc:
++        die(f"cannot read project config: {exc}")
++    if not shutil.which("ffprobe"):
++        die("ffprobe not found on PATH")
++    if cfg.get("voiceover") and not os.path.isfile(os.path.join(a.project, cfg["voiceover"])):
++        die(f"voiceover not found: {os.path.join(a.project, cfg['voiceover'])}")
+     total = probe_duration(os.path.join(a.project, cfg["voiceover"])) if cfg.get("voiceover") else None
+     path = a.script
+-    txt = open(path, encoding="utf-8-sig").read()
++    if not os.path.isfile(path):
++        die(f"script not found: {path}")
++    try:
++        txt = open(path, encoding="utf-8-sig").read()
++    except OSError as exc:
++        die(f"cannot read script: {exc}")
+     ext = os.path.splitext(path)[1].lower()
+     words = None
+-    if ext in (".srt", ".vtt"):
+-        cues = parse_srt_vtt(txt)
+-    elif ext == ".json":
+-        d = json.loads(txt)
+-        if isinstance(d, dict) and "words" in d:
+-            words = [{"word": w.get("word") or w.get("text"), "start": to_sec(w["start"]), "end": to_sec(w["end"])} for w in d["words"]]
+-            cues = []
++    try:
++        if ext in (".srt", ".vtt"):
++            cues = parse_srt_vtt(txt)
++        elif ext == ".json":
++            d = json.loads(txt)
++            if isinstance(d, dict) and "words" in d:
++                words = [{"word": w.get("word") or w.get("text"), "start": to_sec(w["start"]), "end": to_sec(w["end"])} for w in d["words"]]
++                cues = []
++            else:
++                seg = d.get("segments", d) if isinstance(d, dict) else d
++                cues = [{"start": to_sec(s["start"]), "end": to_sec(s["end"]) if s.get("end") is not None else None, "text": s.get("text", "").strip()} for s in seg]
+         else:
+-            seg = d.get("segments", d) if isinstance(d, dict) else d
+-            cues = [{"start": to_sec(s["start"]), "end": to_sec(s["end"]) if s.get("end") is not None else None, "text": s.get("text", "").strip()} for s in seg]
+-    else:
+-        cues = parse_txt(txt)
++            cues = parse_txt(txt)
++    except (ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
++        die(f"invalid script/config: {exc}")
+     if words is None:
+         if not cues:
+-            sys.exit("No timestamps found. Use tools/transcribe.py --script <file> to time a plain script from the voiceover.")
++            die("no timestamps found; use tools/transcribe.py --script <file> or provide SRT/VTT/JSON timestamps")
+         cues.sort(key=lambda c: c["start"])
+         words = spread_words(cues, total or (cues[-1]["start"] + 4))
+         sentences = [{"i": i, "start": round(c["start"], 3), "end": round(c.get("end") or (cues[i + 1]["start"] if i + 1 < len(cues) else (total or c["start"] + 4)), 3), "text": c["text"]} for i, c in enumerate(cues)]
+     else:
+         sentences = sentences_from_words(words)
++    if not words:
++        die("script produced no words/timestamps")
+     if total and words[-1]["end"] > total + 1:
+         print(f"WARNING: script runs to {words[-1]['end']:.1f}s but the voiceover is {total:.1f}s — check the timestamps match this audio.")
+     write_timeline(os.path.join(a.project, "timeline"), words, sentences, f"script:{os.path.basename(path)}")
+
+
+--- a/tools/beats.py
++++ b/tools/beats.py
+@@ -9,21 +9,35 @@
+ """
+ import argparse, os, re, sys
+ sys.path.insert(0, os.path.dirname(__file__))
+ from common import load_json, save_json, ts
+
++
++def die(message: str, code: int = 2):
++    print(f"FAIL: {message}")
++    sys.exit(code)
++
+ ap = argparse.ArgumentParser()
+ ap.add_argument("--project", required=True)
+ ap.add_argument("--target", type=float, default=3.0)
+ ap.add_argument("--max", type=float, default=6.5)
+ ap.add_argument("--min", type=float, default=1.2)
+ ap.add_argument("--lead", type=float, default=0.15)
+ ap.add_argument("--tail", type=float, default=1.5, help="seconds of picture after the last word")
+ ap.add_argument("--force", action="store_true", help="overwrite an existing story/shots.json")
+ a = ap.parse_args()
+-cfg = load_json(os.path.join(a.project, "config.json"))
+-words = load_json(os.path.join(a.project, "timeline", "words.json"))["words"]
++try:
++    cfg = load_json(os.path.join(a.project, "config.json"))
++    timeline = load_json(os.path.join(a.project, "timeline", "words.json"))
++except (OSError, ValueError) as exc:
++    die(f"cannot read project/timeline: {exc}")
++words = timeline.get("words") if isinstance(timeline, dict) else None
++if not isinstance(words, list) or not words:
++    die("timeline has no words; run timeline/transcribe first")
++for i, w in enumerate(words):
++    if not isinstance(w, dict) or not {"word", "start", "end"} <= set(w):
++        die(f"timeline word {i} is malformed; expected word/start/end")
+ total = max(cfg.get("duration") or 0, words[-1]["end"]) + 0.0
+ end_all = max(total, words[-1]["end"] + a.tail)
+
+ # 1) split into phrases at strong punctuation, then at commas/conjunctions if too long
+ phr, cur = [], []

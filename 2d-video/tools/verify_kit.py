@@ -30,6 +30,8 @@ PATCHED = {
     "tools/common.py": "runtime-python.patch",
     "tools/doctor.py": "runtime-python.patch",
     "tools/new_project.py": "new-project-safety.patch",
+    "tools/parse_script.py": "error-handling.patch",
+    "tools/beats.py": "error-handling.patch",
 }
 
 EXPECTED = {
@@ -56,13 +58,13 @@ EXPECTED = {
     "package.json": "20ec9c70ce291e3c",
     # Patched intentionally; see PATCHED above and patches/README.md.
     "player.html": "22a3882b61abe1a1",
-    "render.mjs": "37ab12bc5c492836",
-    "tools/beats.py": "0d7160df4e2393bf",
+    "render.mjs": "6664e662ce55fb3f",
+    "tools/beats.py": "4f066a561c9d6d1d",
     "tools/common.py": "719d9452a233a962",
     "tools/doctor.py": "d6b56eb3e93680cc",
     "tools/new_project.py": "aca57b03253da28a",
-    "tools/parse_script.py": "5163cf3162b2579b",
-    "tools/transcribe.py": "fef7d16a6db0ee14",
+    "tools/parse_script.py": "266581e03bdebcee",
+    "tools/transcribe.py": "58f568905a75739c",
 }
 
 

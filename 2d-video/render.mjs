@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
@@ -170,6 +170,12 @@ const shot = (page, f) => page.evaluate(i => window.renderFrame(i), f).then(() =
 const fmtT = s => `${Math.floor(s / 60)}m${String(Math.round(s % 60)).padStart(2, '0')}s`;
 
 async function renderVideo() {
+  const ffmpeg = spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' });
+  if (ffmpeg.error || ffmpeg.status !== 0) {
+    console.error('RENDER FAILED: ffmpeg not found on PATH');
+    process.exitCode = 2;
+    return;
+  }
   const b0 = await chromium.launch(LAUNCH); const p0 = await openPlayer(b0);
   const total = await p0.evaluate('window.TOTAL_FRAMES'), fps = FPS;
   const missing = (await p0.evaluate('window.SHOT_LIST')).filter(s => !s.ok); if (missing.length) console.log(`WARNING: ${missing.length} shots have no scene file yet: ${missing.slice(0, 12).map(s => s.id).join(', ')}${missing.length > 12 ? ' …' : ''}`);
@@ -222,4 +228,4 @@ async function renderStills() {
 }
 try { if (args['self-check']) await selfCheck(); else if (args.sheet || args.stills || args.styles) await renderStills(); else await renderVideo(); }
 catch (e) { console.error('RENDER FAILED:', e.message); process.exitCode = 1; }
-finally { server.close(); }
+finally { server.close(); if (process.exitCode) { try { fs.rmSync(path.join(BUILD, 'parts'), { recursive: true, force: true }); } catch {} } }

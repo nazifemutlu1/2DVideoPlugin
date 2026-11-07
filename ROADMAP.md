@@ -1,6 +1,6 @@
 # ROADMAP: 2DVideoPlugin → production-ready
 
-Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3, R5, R7 и R8 выполнены**; R4 пере-сформулирован под TTS и ждёт TTS-фикстуру; R6 выполнен кроме R6.3 (раскладка тестовых проектов); R9 в основном выполнен (`--self-check`, 11 проверок), R9.3 (внешний fetch) отложен; следующий исполнимый пункт — R10. Этот файл — источник истины по порядку работ.
+Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3, R5, R7 и R8 выполнены**; R4 пере-сформулирован под TTS и ждёт TTS-фикстуру; R6 выполнен кроме R6.3 (раскладка тестовых проектов); R9 в основном выполнен; R10 выполнен кроме R10.4 (cleanup preview/final); следующий исполнимый пункт — R11. Этот файл — источник истины по порядку работ.
 
 > **Проект не закрывается на R15.** R15 — это стабильный baseline, а не финальная заморозка. После него ожидаются интеграции (TTS, стили, внешний API/сервис); они вынесены в R16–R17. Поэтому упаковка и release-freeze не делаются, пока не определён scope интеграции.
 >
@@ -93,7 +93,7 @@
 - `tools/common.py` импортирует numpy только внутри `load_audio`; `python tools/new_project.py --help` и `beats.py --help` → exit 0 без numpy.
 - `bootstrap.ps1` и `bootstrap.sh` только проверяют и печатают команды; Chromium определяется корректно.
 - `README.md`, `MIGRATION.md` и 5 skills обновлены на `python tools/2dvideo.py` / явный venv.
-- `npm test` → PASS 4/4; `verify_kit` 29/29 (6 intentional patches); CLI `mix` → exit 0.
+- `npm test` → PASS 4/4; `verify_kit` 29/29 (8 intentional patches); CLI `mix` → exit 0.
 
 
 ---
@@ -115,7 +115,7 @@
 - `python tools/2dvideo.py --python C:\Python314\python.exe check` → exit 2, «numpy, scipy, faster_whisper» — корректный негативный тест.
 - `python tools/2dvideo.py mix --project projects/whisper_en_e2e` → exit 0; `ffprobe`: H.264 + AAC, 9.893 s.
 - `python tools/2dvideo.py --python C:\Python314\python.exe mix ...` → exit 2 с понятной командой установки.
-- `npm test` → PASS 4/4; `verify_kit` 29/29 (6 intentional patches).
+- `npm test` → PASS 4/4; `verify_kit` 29/29 (8 intentional patches).
 
 
 ---
@@ -215,7 +215,7 @@
 - `../escape`, `..\escape`, `bad name`, `кириллица`, имя >64 символов → exit 2; запись вне `projects/` не создаётся.
 - Новый проект создаётся; повтор без `--force` → exit 2; с `--force` → exit 0, sentinel scene сохраняется.
 - Битый audio → проект и temp не остаются.
-- `npm test` → PASS 6/6 (добавлены unit tests); `verify_kit` 29/29 (6 intentional patches).
+- `npm test` → PASS 6/6 (добавлены unit tests); `verify_kit` 29/29 (8 intentional patches).
 
 
 ---
@@ -249,7 +249,7 @@
 **Evidence (2026-11-07):**
 - `node render.mjs --project examples/reaction-time --self-check` → `SELF-CHECK PASS (11/11)`.
 - [tests/test_render_security.py](tests/test_render_security.py) → PASS; 9 unit tests total.
-- `npm test` → 6/6, exit 0; kit 29/29, 6 intentional patches.
+- `npm test` → 6/6, exit 0; kit 29/29, 8 intentional patches.
 - Symlink check skipped на Windows (`EPERM`); на Linux должен выполняться.
 - R9.3 (внешний fetch) пока не автоматизирован; CSP и route guard присутствуют, но нужен отдельный browser test.
 
@@ -260,13 +260,21 @@
 
 ## R10. Устойчивость и коды ошибок — P1
 
-- [ ] R10.1 Guard на пустые `words` в `parse_script.py`, `beats.py`, `transcribe.py`.
-- [ ] R10.2 Проверка `ffmpeg`/`ffprobe` до старта; понятная ошибка при `spawn` failure.
-- [ ] R10.3 Единые exit codes: 0 — OK, 1 — stage failed, 2 — prerequisite/user error.
-- [ ] R10.4 Убирать partial outputs (`build/parts`, `preview.mp4`) при падении, чтобы не выдавать битый файл за готовый.
-- [ ] R10.5 Тесты: пустой SRT, нет озвучки, нет сцены, нет ffmpeg, битый JSON.
+- [x] R10.1 Guard на пустые `words` в `parse_script.py`, `beats.py`, `transcribe.py`.
+- [x] R10.2 Проверка `ffmpeg`/`ffprobe` до старта в CLI, parse_script и renderVideo; понятная ошибка.
+- [x] R10.3 Единые exit codes: 0 — OK, 1 — stage failed, 2 — prerequisite/user error.
+- [~] R10.4 Убирать partial outputs (`build/parts`) при падении; `preview.mp4` и старый финальный файл пока не трогаются.
+- [x] R10.5 Тесты: пустой SRT, битый JSON, пустые words, нет audio, нет ffmpeg; сцена без scene остаётся warning, не ошибкой.
 
 **DoD:** пользователь видит причину и следующий шаг; нет `IndexError`/сырых traceback на ожидаемых ошибках.
+
+**Evidence (2026-11-07):**
+- [tests/test_error_handling.py](tests/test_error_handling.py): 6 тестов, включая empty SRT, bad JSON, empty words, no audio, no ffmpeg.
+- `python -m unittest discover -s tests -v` → 15 тестов OK.
+- `npm test` → 6/6, exit 0; `verify_kit` 29/29, 8 intentional patches.
+- `parse_script.py`/`beats.py` имеют `FAIL:` и exit 2; `transcribe.py` — exit 2 для отсутствия audio/model/faster-whisper.
+- `render.mjs` проверяет ffmpeg и удаляет `build/parts` при ошибке.
+
 
 ---
 
@@ -369,7 +377,7 @@
 | R7 | P1 | Безопасность `new_project` | R2 | [x] |
 | R8 | P1 | Пути `--project` | R2 | [x] |
 | R9 | P1 | Security-тесты рендера | R1 | [~] |
-| R10 | P1 | Ошибки/exit codes | R2 | [ ] |
+| R10 | P1 | Ошибки/exit codes | R2 | [~] |
 | R11 | P1 | GPU/производительность | R2 | [ ] |
 | R12 | P1 | Документация | R2–R6 | [ ] |
 | R13 | P2 | Тесты/CI | R1–R12 | [ ] |

@@ -11,6 +11,11 @@ import argparse, os, re, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from common import load_json, save_json, ts
 
+
+def die(message: str, code: int = 2):
+    print(f"FAIL: {message}")
+    sys.exit(code)
+
 ap = argparse.ArgumentParser()
 ap.add_argument("--project", required=True)
 ap.add_argument("--target", type=float, default=3.0)
@@ -20,8 +25,17 @@ ap.add_argument("--lead", type=float, default=0.15)
 ap.add_argument("--tail", type=float, default=1.5, help="seconds of picture after the last word")
 ap.add_argument("--force", action="store_true", help="overwrite an existing story/shots.json")
 a = ap.parse_args()
-cfg = load_json(os.path.join(a.project, "config.json"))
-words = load_json(os.path.join(a.project, "timeline", "words.json"))["words"]
+try:
+    cfg = load_json(os.path.join(a.project, "config.json"))
+    timeline = load_json(os.path.join(a.project, "timeline", "words.json"))
+except (OSError, ValueError) as exc:
+    die(f"cannot read project/timeline: {exc}")
+words = timeline.get("words") if isinstance(timeline, dict) else None
+if not isinstance(words, list) or not words:
+    die("timeline has no words; run timeline/transcribe first")
+for i, w in enumerate(words):
+    if not isinstance(w, dict) or not {"word", "start", "end"} <= set(w):
+        die(f"timeline word {i} is malformed; expected word/start/end")
 total = max(cfg.get("duration") or 0, words[-1]["end"]) + 0.0
 end_all = max(total, words[-1]["end"] + a.tail)
 

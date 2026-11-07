@@ -24,7 +24,7 @@ git -c core.autocrlf=false apply ..\patches\runtime-python.patch
 python tools/verify_kit.py
 ```
 
-`verify_kit.py` must report **29/29** with 6 intentional patches.
+`verify_kit.py` must report **29/29** with 8 intentional patches.
 
 ## 3. Dependencies
 

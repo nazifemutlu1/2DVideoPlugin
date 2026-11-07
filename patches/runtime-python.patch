@@ -4,15 +4,15 @@
  """tools/common.py — shared helpers (ffmpeg decode, json io, time formatting)."""
  import json, os, re, subprocess, sys
 -import numpy as np
- 
- 
+
+
  def run(cmd):
      r = subprocess.run(cmd, capture_output=True, text=True)
      if r.returncode != 0:
 @@ -15,10 +14,11 @@
      return float(out.strip())
- 
- 
+
+
  def load_audio(path, sr=16000, mono=True):
      """Decode any audio/video file with ffmpeg into float32 numpy (mono: shape [n], stereo: [n, 2])."""
 +    import numpy as np  # lazy: non-audio commands (--help, beats, parse_script) must work without it
@@ -27,7 +27,7 @@
  for mod, pipname in [("numpy", "numpy"), ("scipy", "scipy"), ("faster_whisper", "faster-whisper")]:
      ok(f"python: {pipname}", importlib.util.find_spec(mod) is not None, "", f"\"{PY}\" -m pip install {pipname}" + (" --break-system-packages" if OS == "Linux" else ""))
  ok(f"python >= 3.9", sys.version_info >= (3, 9), sys.version.split()[0], "install Python 3.10+ from https://python.org")
- 
+
  print("\n2D Video — environment check\n")
 +print(f"  Python: {sys.executable}")
 +print(f"  Studio: {ROOT}\n")

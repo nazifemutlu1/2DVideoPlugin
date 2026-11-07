@@ -46,6 +46,11 @@ def align_script(script_text, wwords):
     return [{"word": t, "start": round(s, 3), "end": round(e, 3)} for t, (s, e) in zip(toks, times)]
 
 
+def fail(message: str, code: int = 2) -> None:
+    print(f"FAIL: {message}")
+    sys.exit(code)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--project", required=True)
@@ -54,18 +59,24 @@ def main():
     ap.add_argument("--lang", default=None, help="source language; defaults to project speechLanguage/language, then ru; auto detects")
     ap.add_argument("--script", help="plain-text script to align (keeps exact wording)")
     a = ap.parse_args()
-    cfg = load_json(os.path.join(a.project, "config.json"))
+    try:
+        cfg = load_json(os.path.join(a.project, "config.json"))
+    except (OSError, ValueError) as exc:
+        fail(f"cannot read project config: {exc}")
     lang = a.lang or cfg.get("speechLanguage") or cfg.get("language") or "ru"
     lang = None if lang == "auto" else lang
     audio_path = a.audio
-    if not os.path.isfile(audio_path):
-        sys.exit(f"audio file not found: {audio_path}")
+    if not audio_path or not os.path.isfile(audio_path):
+        fail(f"audio file not found: {audio_path}")
     if not a.model:
-        sys.exit("--model must point to a local CTranslate2 Whisper model directory")
+        fail("--model must point to a local CTranslate2 Whisper model directory")
     if not os.path.isdir(a.model):
-        sys.exit(f"Whisper model directory not found: {a.model}")
+        fail(f"Whisper model directory not found: {a.model}")
     os.environ.setdefault("HF_HUB_OFFLINE", "1")
-    from faster_whisper import WhisperModel  # pip install faster-whisper
+    try:
+        from faster_whisper import WhisperModel  # pip install faster-whisper
+    except ImportError as exc:
+        fail(f"faster-whisper is not installed ({exc}); use requirements-whisper.txt")
     try:
         import torch  # noqa
         device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -82,7 +93,7 @@ def main():
             words.append({"word": w.word.strip(), "start": round(w.start, 3), "end": round(w.end, 3)})
         print(f"  {s.start:7.2f}  {s.text.strip()[:90]}")
     if not words:
-        sys.exit("no speech found in the voiceover")
+        fail("no speech found in the supplied audio")
     source = f"whisper:{model_name}"
     script = a.script or (os.path.join(a.project, cfg["script"]) if cfg.get("script") and cfg["script"].endswith((".txt", ".md")) else None)
     if script and os.path.exists(script):
