@@ -1,0 +1,25 @@
+{
+ "language": "ru",
+ "speechLanguage": "ru",
+ "title": "Security 3 Shots: 2D / 2.5D / 3D",
+ "aspect": "16:9",
+ "resolution": "1080p",
+ "fps": 24,
+ "style": "midnight",
+ "voiceover": null,
+ "script": null,
+ "duration": 60.0,
+ "captions": false,
+ "bars": null,
+ "fadeIn": 0.4,
+ "fadeOut": 0.4,
+ "music": {
+  "enabled": false,
+  "gainDb": -17
+ },
+ "sfx": {
+  "enabled": false,
+  "gainDb": -6
+ },
+ "loudness": -14
+}

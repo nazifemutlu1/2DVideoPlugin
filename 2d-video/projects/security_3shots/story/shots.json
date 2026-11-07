@@ -1,0 +1,59 @@
+{
+ "title": "Security 3 Shots: 2D / 2.5D / 3D",
+ "duration": 60.0,
+ "shots": [
+  {
+   "id": "s001",
+   "start": 0,
+   "end": 20,
+   "line": "",
+   "scene": "2D canvas: neon city, parallax, particles",
+   "set": null,
+   "bars": null,
+   "in": {
+    "type": "cut"
+   },
+   "sfx": [],
+   "vignette": true,
+   "captions": false,
+   "notes": "2D"
+  },
+  {
+   "id": "s002",
+   "start": 20,
+   "end": 40,
+   "line": "",
+   "scene": "2.5D layered city: foreground / mid / far / sky",
+   "set": null,
+   "bars": null,
+   "in": {
+    "type": "fade",
+    "dur": 0.8
+   },
+   "sfx": [],
+   "vignette": true,
+   "captions": false,
+   "notes": "2.5D"
+  },
+  {
+   "id": "s003",
+   "start": 40,
+   "end": 60,
+   "line": "",
+   "scene": "3D procedural city: Three.js orbit + fog + lights",
+   "set": null,
+   "bars": null,
+   "in": {
+    "type": "whip",
+    "dur": 0.6,
+    "dir": 1
+   },
+   "sfx": [],
+   "vignette": true,
+   "captions": false,
+   "notes": "3D"
+  }
+ ],
+ "music": [],
+ "sfx": []
+}
