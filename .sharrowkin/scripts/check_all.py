@@ -1,4 +1,4 @@
-"""Единая проверка проекта: синтаксис Python, синтаксис ESM, целостность студии.
+"""Единая проверка проекта: синтаксис Python, синтаксис ESM, целостность студии, окружение.
 
     npm test            (или python .sharrowkin/scripts/check_all.py)
 
@@ -17,6 +17,7 @@ STEPS = [
     ("python syntax", [sys.executable, ".sharrowkin/scripts/check_python.py"], ROOT),
     ("esm syntax", ["node", "--experimental-vm-modules", ".sharrowkin/scripts/check_syntax.mjs"], ROOT),
     ("kit integrity", [sys.executable, "tools/verify_kit.py"], ROOT / "2d-video"),
+    ("environment", [sys.executable, ".sharrowkin/scripts/check_env.py"], ROOT),
 ]
 
 

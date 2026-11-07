@@ -1,6 +1,6 @@
 # ROADMAP: 2DVideoPlugin → production-ready
 
-Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0 выполнен**, следующий — R1. Этот файл — источник истины по порядку работ.
+Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0 и R1 выполнены**, следующий — R2. Этот файл — источник истины по порядку работ.
 
 ## Правила выполнения
 
@@ -52,13 +52,20 @@
 
 **Цель:** `npm test` снова зелёный, но без отката security/CSP/offline-правок.
 
-- [ ] R1.1 Выбрать схему: **A** — обновить `EXPECTED` в `verify_kit.py` на текущие хеши + `patches/README.md`; **B** — добавить `verify_kit.py --allow-patched` с явным списком. По умолчанию делать A, если нет причин для B.
-- [ ] R1.2 Обновить `2d-video/tools/verify_kit.py`: внятное сообщение «файл изменён намеренно, см. patches/…», не советовать бездумно копировать оригинал.
-- [ ] R1.3 Добавить проверку, что unexpected mismatch всё ещё валит gate.
-- [ ] R1.4 Обновить `npm test`, чтобы он проверял: синтаксис Python + ESM + integrity + наличие ключевых зависимостей/конфигурации (без установки).
-- [ ] R1.5 Записать evidence: `npm test` exit 0, 29/29, вывод без `MISMATCH`.
+- [x] R1.1 Выбрать схему: **A** — обновить `EXPECTED` в `verify_kit.py` на текущие хеши + `patches/README.md`; **B** — добавить `verify_kit.py --allow-patched` с явным списком. По умолчанию делать A, если нет причин для B.
+- [x] R1.2 Обновить `2d-video/tools/verify_kit.py`: внятное сообщение «файл изменён намеренно, см. patches/…», не советовать бездумно копировать оригинал.
+- [x] R1.3 Добавить проверку, что unexpected mismatch всё ещё валит gate.
+- [x] R1.4 Обновить `npm test`, чтобы он проверял: синтаксис Python + ESM + integrity + наличие ключевых зависимостей/конфигурации (без установки).
+- [x] R1.5 Записать evidence: `npm test` exit 0, 29/29, вывод без `MISMATCH`.
 
 **DoD:** `npm test` → exit 0, 29/29; `patches/` объясняет каждое отклонение; случайное изменение файла по-прежнему ловится.
+
+**Evidence (2026-11-07):**
+- `verify_kit.py` переведён на схему A: ожидаемые хеши patched-файлов + `PATCHED` с ссылками на `patches/*`.
+- `npm test` → `CHECK PASSED: 4/4`, exit 0; Python syntax 27/27, ESM 15/15, kit 29/29, environment 13/13.
+- Self-test `verify_kit.py --root <temp copy>`: чистая копия — 29/29 exit 0; после порчи `player.html` — `MISMATCH ... exit 1`.
+- Новый [.sharrowkin/scripts/check_env.py](.sharrowkin/scripts/check_env.py) проверяет Node, npm-пакеты, ffmpeg/ffprobe, venv, numpy/scipy/faster-whisper и Chromium без установки.
+
 
 ---
 
@@ -247,7 +254,7 @@
 | ID | Приоритет | Тема | Зависит от | Статус |
 |---|---|---|---|---|
 | R0 | P0 | Страховка, git, патчи | — | [x] |
-| R1 | P0 | Зелёный gate | R0 | [ ] |
+| R1 | P0 | Зелёный gate | R0 | [x] |
 | R2 | P0 | Python/venv | R0 | [ ] |
 | R3 | P0 | CLI mix | R2 | [ ] |
 | R4 | P0 | Whisper RU | R2 | [ ] |
