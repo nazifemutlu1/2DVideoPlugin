@@ -1,35 +1,71 @@
 # Installing the studio (once per machine or workspace)
 
-The studio is a small Node + Python toolkit that ships inside this plugin, in the `kit/` folder of the `make-2d-video` skill. Copy it into a writable workspace folder, because the plugin folder may be read-only and the studio needs `node_modules`, projects and renders next to it.
+The studio is a Node + Python toolkit. In this workspace it is already installed at `2d-video/`; `original/skills/make-2d-video/kit/` is the read-only source. A writable copy is needed for `node_modules`, `.venv-whisper`, projects and renders.
 
-## 1. Locate the kit
-- The kit is `kit/` inside the `make-2d-video` skill's base directory. Stage commands (`new-video`, `video-styles`, `render-video`, `video-sound`) reach it at `../make-2d-video/kit/` from their own base directory.
-- If the path is unclear, search for it: `find / -path "*make-2d-video/kit/render.mjs" 2>/dev/null | head -1` (Linux/macOS/Cowork VM), or `Get-ChildItem -Recurse -Filter render.mjs -Path $HOME\.claude | Select-Object -First 1` (PowerShell).
+## 1. Locate the source
 
-## 2. Choose the workspace and copy
-- Use the user's connected project folder if there is one, otherwise the current working directory. Create `2d-video/` there.
-- If `2d-video/` already exists with `render.mjs` inside, it's already installed. Skip to step 4 (doctor), and never overwrite the user's `projects/` folder.
-- Copy all of `kit/` into it: `cp -r "<kit>/." 2d-video/` (bash) or `Copy-Item -Recurse "<kit>\*" 2d-video\` (PowerShell).
-- Run `python tools/verify_kit.py` inside `2d-video/`. It must report 29/29. If anything is missing or mismatched, copy those files again.
+- Source kit: `original/skills/make-2d-video/kit/` (workspace root).
+- Working studio: `2d-video/` (original kit + intentional patches in `patches/`).
+- CLI runner: `tools/2dvideo.py` (workspace root).
 
-## 3. Install dependencies
-Tell the user, in one short list, what is being installed and why: ffmpeg (video/audio encoding), Node.js packages (renderer, Three.js, fonts), a headless Chromium (draws the frames), and numpy, scipy and faster-whisper (sound synthesis and timestamps).
+## 2. Install into a new workspace
 
-| Need | Windows | macOS | Linux |
-|---|---|---|---|
-| ffmpeg + ffprobe | `winget install --id Gyan.FFmpeg -e` (then open a new terminal) | `brew install ffmpeg` | `sudo apt-get install -y ffmpeg` |
-| Node.js ≥ 18 | `winget install OpenJS.NodeJS.LTS` | `brew install node` | nodesource or distro package |
-| Python ≥ 3.9 | python.org installer | `brew install python` | distro package |
-| JS packages | `npm install` (inside 2d-video) | same | same |
-| Headless Chromium | `npx playwright install chromium` | same | same (`npx playwright install-deps chromium` if libraries are missing) |
-| Python packages | `python -m pip install numpy scipy faster-whisper` | same | add `--break-system-packages` on managed Pythons |
+- Create `2d-video/` next to the workspace root.
+- If `2d-video/render.mjs` exists, the studio is already installed; never overwrite an existing `projects/` folder.
+- Copy the kit and apply the patches; see `patches/README.md`. Do not copy the original over the working copy.
+
+```powershell
+Copy-Item -Recurse "original\skills\make-2d-video\kit\*" "2d-video\"
+cd 2d-video
+git -c core.autocrlf=false apply ..\patches\player-csp.patch
+git -c core.autocrlf=false apply ..\patches\transcribe-offline.patch
+git -c core.autocrlf=false apply ..\patches\render-http-security.patch
+git -c core.autocrlf=false apply ..\patches\runtime-python.patch
+python tools/verify_kit.py
+```
+
+`verify_kit.py` must report **29/29** with 5 intentional patches.
+
+## 3. Dependencies
+
+Nothing is installed automatically. Tell the user in one short list what is being installed and why: FFmpeg (encode/decode), Node packages (renderer, Three.js, fonts), headless Chromium (frames), Python packages (sound/timestamps).
+
+| Need | Windows | macOS / Linux |
+|---|---|---|
+| ffmpeg + ffprobe | `winget install --id Gyan.FFmpeg -e` (new terminal) | `brew install ffmpeg` / `sudo apt-get install -y ffmpeg` |
+| Node.js ≥ 18 | `winget install OpenJS.NodeJS.LTS` | distro / nodesource |
+| Python ≥ 3.9 | python.org installer | distro package |
+| JS packages | `cd 2d-video; npm install` | same |
+| Chromium | `cd 2d-video; npx playwright install chromium` | same (`install-deps` on Linux if needed) |
+| Python packages | `python -m venv .venv-whisper; .\.venv-whisper\Scripts\python.exe -m pip install -r requirements.txt` | `python3 -m venv .venv-whisper; ./.venv-whisper/bin/python -m pip install -r requirements.txt` |
+
+`requirements.txt` pins numpy/scipy/faster-whisper/ctranslate2. It is not needed for the primary TTS + SRT path, but the CLI's environment gate expects the venv.
 
 ## 4. Check and self-test
-1. `python tools/doctor.py`. Use `python3` where `python` isn't Python 3, and `py -3` on some Windows setups. Repeat until every line is OK. `python tools/doctor.py --install` runs the npm, playwright and pip fixes automatically.
-2. Self-test: `node render.mjs --project examples/reaction-time --sheet --scale 0.3`. It should write `examples/reaction-time/build/sheets/sheet_01.png` with 14 finished frames (café scenes, giant faces, a 3D orbit, blueprint charts, a title card) and print no errors. Open the PNG to confirm, then delete `examples/reaction-time/build/`.
-3. Whisper downloads its model the first time it runs (~75 MB for `base`, ~500 MB for `small`). That needs internet access to huggingface.co.
+
+```powershell
+# workspace root
+python tools/2dvideo.py doctor
+python tools/2dvideo.py check
+
+# studio
+cd 2d-video
+node render.mjs --project examples/reaction-time --sheet --scale 0.3
+```
+
+The self-test writes `examples/reaction-time/build/sheets/sheet_01.png` with 14 frames. Open it and confirm; if the current model is not image-capable, say visual QC is pending and ask the user to open it.
+
+Full gate:
+
+```powershell
+npm test
+```
+
+It runs Python syntax, ESM syntax, skills-runtime lint, kit integrity and environment checks. It does not install anything.
 
 ## Notes
-- On Linux servers and the Cowork VM there's no GPU. Chromium uses SwiftShader automatically (`--gl swiftshader` is the Linux default), so everything works, just slower.
-- Disk: ~600 MB for node_modules + Chromium, plus renders (a 10-minute 1080p video is ~150–300 MB).
-- Updating: when the plugin is updated, copy the new `kit/` over the existing install. It never touches `projects/`, so the user's videos are safe. Custom styles added to `engine/styles.js` would need re-adding, so check first.
+
+- TTS + SRT/JSON is the primary voice path: `init --voice ... --script ...` then `timeline --mode timestamps`. Whisper is legacy-only and its model is **not downloaded automatically**; pass a local `--model` directory if needed.
+- On Linux servers Chromium uses SwiftShader (`--gl swiftshader`); CPU rendering is slower.
+- Disk: node_modules + Chromium ≈ 600 MB, venv ≈ 420 MB, Whisper model (optional) ≈ 486 MB, plus renders.
+- Updating: apply the current `patches/` to the new kit; never overwrite `projects/`.

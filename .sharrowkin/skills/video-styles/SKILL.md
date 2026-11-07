@@ -9,17 +9,17 @@ description: >
 metadata:
   version: "0.1.1-sharrowkin.1"
   author: Андрей Зенин
-  adapted_for: Sharrowkin (DeepSeek Flash)
+  adapted_for: DSH (DeepSeek Harness)
 ---
 
 # video-styles: render style options and lock the look
 
 Work inside `2d-video/` on the active project (`projects/<slug>`; if several exist, ask which one). Shared references are in `.sharrowkin/skills/make-2d-video/references/`.
 
-## Sharrowkin runtime
+## Current DSH runtime
 
-- The grid is a PNG: open `build/styles/style_grid.png` with `view_image` and check it before showing the user.
-- Ask the user to choose with `ask_user` (2–4 options, one recommended).
+- The grid is a PNG: open `build/styles/style_grid.png` with `read_image` and check it before showing the user. If the current model is not image-capable, say visual QC is pending and ask the user to open the grid.
+- Ask the user to choose with `ask_user_question` (2–4 options, one recommended).
 - `python`, not `python3`; quote paths with spaces. Never install packages without permission.
 - **Python convention:** use `python tools/2dvideo.py` from the workspace root or `.venv-whisper\Scripts\python.exe` inside `2d-video/`; host Python 3.14 lacks numpy/scipy.
 - CLI runner equivalent: `python tools/2dvideo.py sheet --project projects/<slug>` for the per-shot sheet; the style grid itself is `node render.mjs --styles …` (see below).
@@ -51,7 +51,7 @@ Open `build/styles/style_grid.png` (one row per style) and check it, then show i
 - **neon — Neon Noir:** deep blacks, magenta and teal rims, strong bloom; sci-fi, tech, crime.
 - **storybook — Soft Storybook:** lighter pastel, low contrast; family-friendly.
 
-Ask which they want (`ask_user` when available).
+Ask which they want (`ask_user_question` when available).
 
 ## 3. Save or customise
 - Preset chosen → set `"style"` in `projects/<slug>/config.json`.

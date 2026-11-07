@@ -9,20 +9,20 @@ description: >
 metadata:
   version: "0.1.1-sharrowkin.1"
   author: Андрей Зенин
-  adapted_for: Sharrowkin (DeepSeek Flash)
+  adapted_for: DSH (DeepSeek Harness)
 ---
 
 # new-video: intake → studio check → timeline → story breakdown
 
 This skill covers stages 1–4 of the 2D Video pipeline. Shared references live in `.sharrowkin/skills/make-2d-video/references/` (workspace root), and the studio is installed at `2d-video/`.
 
-## Sharrowkin runtime
+## Current DSH runtime
 
 - There are no slash commands: the user asks for this stage in words, or names the skill `new-video`.
-- `AskUserQuestion` → `ask_user` (2–4 options, one recommended).
-- Shell → `run_command` (cmd.exe; `python`, not `python3`; quote paths with spaces).
+- Choice card → `ask_user_question` (2–4 options, one recommended).
+- Shell → `bash` (Git Bash) or `pwsh` (PowerShell); use `python`, not `python3`; quote paths with spaces.
 - **Python convention:** use `python tools/2dvideo.py` from the workspace root; it selects `.venv-whisper`. Bare host `python` lacks numpy/scipy.
-- **Never install packages or download a Whisper model without explicit permission.**
+- **Never install packages or download a model without explicit permission.** The primary voice path is TTS + SRT/JSON; Whisper is legacy-only.
 - Never edit `original/` or `2d-video.plugin`.
 - The CLI runner `python tools/2dvideo.py` (workspace root) wraps these stages: `init`, `timeline`, `beats`, `status`.
 
@@ -36,7 +36,7 @@ This skill covers stages 1–4 of the 2D Video pipeline. Shared references live 
 - Do not copy English text from the example scenes into a Russian project. Pass explicit text in the selected language to UI helpers (including `subscribeLabel` on the end screen); check a preview for stray English and missing Cyrillic glyphs.
 
 ## 1. Intake
-Ask once (`ask_user` when available), skipping anything the user already said:
+Ask once (`ask_user_question` when available), skipping anything the user already said:
 - **Voiceover file** (required).
 - **Script:** timestamped (SRT, VTT, JSON, or TXT with `[mm:ss]`), plain text, or none.
 - **Aspect:** 16:9 or 9:16.
@@ -48,7 +48,7 @@ Ask once (`ask_user` when available), skipping anything the user already said:
 Defaults: language `ru`, speech language same as output, 16:9, 1080p, generated music + SFX.
 
 ## 2. Studio
-The studio is at `2d-video/` (original kit + 3 intentional patches). From the workspace root run `python tools/2dvideo.py doctor` and, inside `2d-video/`, `python tools/verify_kit.py` (29/29). Report anything MISSING with its fix command — but **ask before installing**. If `2d-video/render.mjs` is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` and follow `references/install.md`.
+The studio is at `2d-video/` (original kit + 5 intentional patches). From the workspace root run `python tools/2dvideo.py doctor` and, inside `2d-video/`, `python tools/verify_kit.py` (29/29). Report anything MISSING with its fix command — but **ask before installing**. If `2d-video/render.mjs` is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` and follow `references/install.md`.
 
 ## 3. Project and timestamps
 Run the CLI from the workspace root:

@@ -1,4 +1,4 @@
-# 2D Video для Sharrowkin / DeepSeek Harness
+# 2D Video для DeepSeek Harness (DSH)
 
 Порт Claude-плагина `2d-video.plugin`: движок, рендерер, аудио-инструменты, примеры и стили сохранены. Творческие правила — в `.sharrowkin/skills/`.
 
@@ -87,5 +87,5 @@ npx playwright install chromium
 
 - TTS + SRT/JSON не использует Whisper; legacy-путь с Whisper `small.en` ограничен английским.
 - Полный длинный рендер 4K не проверялся; проверены sheet, 9:16 sheet, preview и финальный 9.9-секундный MP4.
+- Skills адаптированы под DSH: `ask_user_question`, `bash`/`pwsh`, `job_output`, `read_image`; слэш-команд нет.
 - Художественная оценка кадров требует image-capable модели; текущая модель не читает PNG через `read_image`.
-- Skills пока содержат runtime-имена Sharrowkin (`run_command`, `view_image` и т.п.); адаптация — R5.

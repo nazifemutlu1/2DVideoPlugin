@@ -89,7 +89,7 @@ description: Directorial motion-design overlay for 2DVideoPlugin/2d-video — co
 
 ## Runtime
 
-- **Sharrowkin:** skill обнаруживается в `.sharrowkin/skills/`; попроси вызвать его по имени, без slash-команд.
+- **DSH:** skill обнаруживается в `.sharrowkin/skills/`; попроси вызвать его по имени, без slash-команд.
 - **Qoder Desktop:** локальный мост лежит в `F:/AI/2DVideoPlugin/.qoder/skills/vizavi-motion/SKILL.md`; вызов — `/vizavi-motion` после `/skills reload`.
 
 ## References

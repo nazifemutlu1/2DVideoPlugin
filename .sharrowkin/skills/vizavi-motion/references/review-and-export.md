@@ -72,13 +72,14 @@ node render.mjs --project projects/<slug> --sheet --scale 0.5
 node render.mjs --project projects/<slug> --stills t1,t2,t3
 node render.mjs --project projects/<slug> --from 0 --to 30 --scale 0.5
 node render.mjs --project projects/<slug> [--workers N] [--format jpeg]
-python audio/mix.py --project projects/<slug>
+# from workspace root:
+python tools/2dvideo.py mix --project projects/<slug>
 ```
 
 - `--sheet` — по одному still на shot; открывай PNG и проверяй композицию.
 - `--stills` — несколько моментов; проверяй движение и фазы.
 - `--from/--to` — preview-фрагмент; смотри в темпе.
-- Полный рендер — только после preview; в Sharrowkin используй `run_background`, не `nohup`/`&`.
+- Полный рендер — только после preview; в текущем DSH используй фоновый job (`bash`/`pwsh`), не `nohup`/`&`.
 - `--format jpeg` ускоряет захват, но не меняет итоговый H.264.
 - `--out` с относительным путём разрешается от cwd, а не от проекта; не используй вслепую.
 

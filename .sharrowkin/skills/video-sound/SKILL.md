@@ -9,14 +9,14 @@ description: >
 metadata:
   version: "0.1.1-sharrowkin.1"
   author: Андрей Зенин
-  adapted_for: Sharrowkin (DeepSeek Flash)
+  adapted_for: DSH (DeepSeek Harness)
 ---
 
 # video-sound: music, SFX, ambience and the final mix
 
 Work inside `2d-video/` on the active project. Read `.sharrowkin/skills/make-2d-video/references/sound-design.md` first.
 
-## Sharrowkin runtime
+## Current DSH runtime
 
 - `python`, not `python3`; quote paths with spaces.
 - **Python convention:** use `python tools/2dvideo.py mix ...` from the workspace root for the mix. For standalone music/SFX auditions use `.venv-whisper\Scripts\python.exe audio/...` inside `2d-video/`; the host Python 3.14 lacks numpy/scipy.

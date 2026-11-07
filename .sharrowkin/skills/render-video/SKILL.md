@@ -9,17 +9,17 @@ description: >
 metadata:
   version: "0.1.1-sharrowkin.1"
   author: Андрей Зенин
-  adapted_for: Sharrowkin (DeepSeek Flash)
+  adapted_for: DSH (DeepSeek Harness)
 ---
 
 # render-video: build, QC, preview and final render
 
 Work inside `2d-video/` on the active project (`projects/<slug>`; if several exist, ask which one). Shared references are in `.sharrowkin/skills/make-2d-video/references/`. Read `engine-api.md`, `style-bible.md` and `render-qc.md` before writing or fixing scenes.
 
-## Sharrowkin runtime
+## Current DSH runtime
 
-- Contact sheets and stills are PNG files: open them with `view_image` and judge them yourself before any long render.
-- Long renders: `run_background` (never `nohup`, never `&`), then poll with `process_output`.
+- Contact sheets and stills are PNG files: open them with `read_image` and judge them yourself before any long render. If the current model is not image-capable, say visual QC is pending and ask the user to open the sheet; do not claim you saw it.
+- Long renders: start a background `bash`/`pwsh` job (never `nohup`, never `&`), then poll with `job_output`.
 - `python`, not `python3`. Quote paths with spaces.
 - **Python convention:** use `python tools/2dvideo.py` from the workspace root or `.venv-whisper\Scripts\python.exe` inside `2d-video/`; the host Python 3.14 lacks numpy/scipy.
 - **Never install packages without permission.** If `node_modules` is missing, `render.mjs` fails with `ERR_MODULE_NOT_FOUND` — report it and ask before `npm install` / `npx playwright install chromium`.
@@ -46,7 +46,7 @@ Render `node render.mjs --project projects/<slug> --from 0 --to 30 --scale 0.5` 
 
 ## 3. Final render
 - To change resolution or aspect, edit `projects/<slug>/config.json` (`resolution`, `aspect`). Switching aspect needs a fresh sheet review, because 9:16 framing differs.
-- Run `node render.mjs --project projects/<slug> [--workers N] [--format jpeg]` with `run_background` for anything over a minute or two, then poll the log and report progress and ETA at sensible intervals.
+- Run `node render.mjs --project projects/<slug> [--workers N] [--format jpeg]` with фоновый job (`bash`/`pwsh`) for anything over a minute or two, then poll the log and report progress and ETA at sensible intervals.
 - Use fewer workers if memory is tight (about 1–1.5 GB each at 1080p, more at 4K). With no GPU, add `--gl swiftshader` (already the Linux default).
 - Output: `build/video_silent.mp4`. The end of the log lists any shot errors. Fix them and re-render if there are any.
 

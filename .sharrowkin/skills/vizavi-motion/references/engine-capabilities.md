@@ -93,7 +93,8 @@ node render.mjs --project projects/<slug> --sheet --scale 0.5
 node render.mjs --project projects/<slug> --stills t1,t2,t3
 node render.mjs --project projects/<slug> --from 0 --to 30 --scale 0.5
 node render.mjs --project projects/<slug> [--workers N] [--format jpeg]
-python audio/mix.py --project projects/<slug>
+# from workspace root:
+python tools/2dvideo.py mix --project projects/<slug>
 ```
 
 `--sheet` даёт по одному still на shot, `--stills` — моменты внутри shot, `--from/--to` — preview-фрагмент. `--out` указывай только если понимаешь, что относительный путь разрешается от cwd, а не от проекта. Полный рендер не запускай до preview и согласования.

@@ -7,11 +7,11 @@
 **Final render:**
 ```bash
 node render.mjs --project projects/my-video [--workers N] [--format jpeg]
-python audio/mix.py --project projects/my-video        # builds music + SFX, mixes, muxes -> out/<title>.mp4
+python tools/2dvideo.py mix --project projects/my-video   # from workspace root: music + SFX + mux
 ```
 - Workers default to half the CPU threads (max 8). Each worker is a separate Chromium. Lower the count if RAM is short (about 0.6–1.5 GB per worker at 1080p, more at 4K).
 - On machines without a GPU (most Linux servers), Chromium uses SwiftShader (`--gl swiftshader`, the default on Linux). On Windows and macOS desktops the GPU is used (`--gl auto`).
-- **Speed guide** (frames = seconds × 24): measured at 720p on a 2-thread cloud CPU, about 2 frames/s, so a 47 s video took about 10 min. 1080p costs ~2× that, 1440p ~3.5×, 4K ~8×. A modern 8-core desktop is ~3–5× faster, and a GPU helps the 3D shots most. Budget accordingly, and for 10-minute videos at 4K plan for a long or overnight render. Long renders should run in the background (`nohup … &` or a separate terminal) while you poll the log.
+- **Speed guide** (frames = seconds × 24): measured at 720p on a 2-thread cloud CPU, about 2 frames/s, so a 47 s video took about 10 min. 1080p costs ~2× that, 1440p ~3.5×, 4K ~8×. A modern 8-core desktop is ~3–5× faster, and a GPU helps the 3D shots most. Budget accordingly, and for 10-minute videos at 4K plan for a long or overnight render. Long renders must run as a background `bash`/`pwsh` job, then poll with `job_output`; do not use `nohup`/`&`.
 - `--format jpeg` speeds up capture (~1.5×) with negligible quality loss.
 - **Partial re-render after a fix:** re-run the whole video (simple and safe), or render only the changed range with `--from/--to --out build/fix.mp4` and splice it in with ffmpeg if you're comfortable.
 - **Final QC:** `ffprobe` duration ≈ the shots.json duration, audio present, then make a contact sheet of the final file with ffmpeg (`-vf fps=1/10,scale=320:-1,tile=6x5`) and look at it.

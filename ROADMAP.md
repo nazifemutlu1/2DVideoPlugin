@@ -1,6 +1,6 @@
 # ROADMAP: 2DVideoPlugin → production-ready
 
-Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3 выполнены**; R4 пере-сформулирован под TTS и ждёт TTS-фикстуру; следующий исполнимый пункт — R5. Этот файл — источник истины по порядку работ.
+Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3 и R5 выполнены**; R4 пере-сформулирован под TTS и ждёт TTS-фикстуру; следующий исполнимый пункт — R6. Этот файл — источник истины по порядку работ.
 
 ## Правила выполнения
 
@@ -140,14 +140,22 @@
 
 **Цель:** агент не вызывает несуществующие инструменты.
 
-- [ ] R5.1 Зафиксировать target: **DSH** или **Sharrowkin/ViralFactory**. Если DSH — переписать; если Sharrowkin — явно не подключать skills к DSH.
-- [ ] R5.2 В `.sharrowkin/skills/*` заменить: `ask_user` → `ask_user_question`; `run_command` → `bash`/`pwsh`; `run_background`/`process_output` → `job_output`; `view_image` → `read_image`; убрать слэш-команды.
-- [ ] R5.3 Все команды stages привести к `python tools/2dvideo.py` или явному venv.
-- [ ] R5.4 Учесть ограничение: `read_image` требует image-capable модель; в skills добавить fallback/проверку.
-- [ ] R5.5 Добавить grep-тест: в skills нет запрещённых имён инструментов.
-- [ ] R5.6 Синхронизировать `references/install.md` с фактическим окружением.
+- [x] R5.1 Зафиксировать target: **DSH** (текущий DeepSeek Harness).
+- [x] R5.2 В `.sharrowkin/skills/*` заменить: `ask_user` → `ask_user_question`; `run_command` → `bash`/`pwsh`; `run_background`/`process_output` → `job_output`; `view_image` → `read_image`; убрать слэш-команды.
+- [x] R5.3 Все команды stages привести к `python tools/2dvideo.py` или явному venv.
+- [x] R5.4 Учесть ограничение: `read_image` требует image-capable модель; в skills добавить fallback/проверку.
+- [x] R5.5 Добавить grep-тест: в skills нет запрещённых имён инструментов.
+- [x] R5.6 Синхронизировать `references/install.md` с фактическим окружением.
 
 **DoD:** ни один skill не ссылается на отсутствующий инструмент; команды из skills воспроизводятся в текущем runtime.
+
+**Evidence (2026-11-07):**
+- `python .sharrowkin/scripts/check_skills.py` → 16 файлов, 0 stale reference(s), exit 0.
+- Обновлены 5 skills + `references/install.md`, `sound-design.md`, `render-qc.md`; metadata `adapted_for: DSH (DeepSeek Harness)`.
+- Убраны `run_command`, `run_background`, `process_output`, `view_image`, `ask_user`, `AskUserQuestion`, слэш-команды.
+- Добавлен fallback: если `read_image` недоступен, visual QC помечается как pending, а не выдумывается.
+- `npm test` → PASS 5/5 (python syntax, ESM, skill runtime, kit 29/29, environment).
+
 
 ---
 
@@ -281,7 +289,7 @@
 | R2 | P0 | Python/venv | R0 | [x] |
 | R3 | P0 | CLI mix | R2 | [x] |
 | R4 | P0 | TTS + тайминги (Whisper опционален) | R2 | [~] |
-| R5 | P0/P1 | Skills/runtime | R2 | [ ] |
+| R5 | P0/P1 | Skills/runtime | R2 | [x] |
 | R6 | P0/P1 | Версии, упаковка | R0 | [ ] |
 | R7 | P1 | Безопасность `new_project` | R2 | [ ] |
 | R8 | P1 | Пути `--project` | R2 | [ ] |

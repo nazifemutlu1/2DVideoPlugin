@@ -12,39 +12,40 @@ description: >
 metadata:
   version: "0.1.1-sharrowkin.1"
   author: Андрей Зенин
-  adapted_for: Sharrowkin (DeepSeek Flash)
+  adapted_for: DSH (DeepSeek Harness)
 ---
 
 # 2D Video: full video pipeline
 
 Turn a voiceover (plus an optional script) into a finished MP4 where every frame is drawn by code (HTML canvas + Three.js), captured frame by frame in headless Chromium and encoded with ffmpeg. No image or video generation models are used, so characters stay consistent and text stays crisp. Invent the visuals fresh for every script; only the style is fixed.
 
-## Sharrowkin runtime (read before stage 1)
+## Current runtime: DSH (read before stage 1)
 
-This is the original Claude plugin, ported to Sharrowkin. The creative rules below are the originals and are not simplified. Only the runtime plumbing changed.
+This is the original Claude plugin, ported to the current DeepSeek Harness (DSH). The creative rules below are the originals and are not simplified. Only the runtime plumbing changed.
 
 **Where things live (workspace root `F:\AI\2DVideoPlugin`):**
-- `2d-video/` — the studio: verbatim copy of the plugin's `kit/` (renderer, engine, tools, audio, `examples/reaction-time`). All commands run inside it.
+- `2d-video/` — the studio: original kit + the intentional patches in `patches/` (renderer, engine, tools, audio, `examples/reaction-time`). Node commands run inside it.
 - `.sharrowkin/skills/make-2d-video/references/` — the reference docs listed below.
 - `original/` — the pristine unpacked plugin. Read-only reference; never edit it.
 - `tools/2dvideo.py` — CLI runner for the deterministic stages (see "CLI runner" below).
 
-**Tool mapping (Claude → Sharrowkin):**
+**Tool mapping (current DSH):**
 
-| Claude plugin | Sharrowkin |
+| Stage | Tool |
 |---|---|
-| `AskUserQuestion` | `ask_user` (choice card; 2–4 options, one recommended) |
-| Bash / shell | `run_command` (cmd.exe on Windows; `&&` to chain; no `nohup`, no `&`) |
-| Long render in background | `run_background` + `process_output` |
-| Reading a PNG contact sheet | `view_image` |
-| `/new-video`, `/video-styles`, `/render-video`, `/video-sound` | skills `new-video`, `video-styles`, `render-video`, `video-sound` — ask for them by name in chat. **Sharrowkin has no slash commands**, so never tell the user to type `/new-video`. |
-| Automatic dependency install | `python tools/doctor.py` reports; **install only after explicit permission** |
+| Choice card / intake | `ask_user_question` (2–4 options, one recommended) |
+| Shell | `bash` (Git Bash) or `pwsh` (PowerShell) |
+| Long render in background | background `bash`/`pwsh` job, then `job_output` |
+| Reading a PNG contact sheet | `read_image`; requires an image-capable model |
+| Stage skills | `new-video`, `video-styles`, `render-video`, `video-sound` are ordinary skills — invoke by name; there are no slash commands |
+| Automatic dependency install | `python tools/2dvideo.py doctor` reports; **install only after explicit permission** |
 
 **Hard rules for this environment:**
 - Never install anything (npm, pip, `npx playwright install`) and never download a Whisper model without asking the user first and getting a yes.
 - Windows: use `python` (not `python3`), quote paths with spaces, and never use `nohup`, `&` or `$(...)`.
 - **Python command convention:** use `python tools/2dvideo.py ...` from the workspace root; it selects `.venv-whisper` automatically. If a studio script must be called directly, use `.venv-whisper\Scripts\python.exe` (bare host `python` is 3.14 without numpy/scipy).
 - Do not run a full video render until the user has seen the preview and approved it.
+- `read_image` requires an image-capable model. If the current model cannot read PNGs, do not claim visual QC: check dimensions/pixel stats, say the aesthetic review is pending, and ask the user to open the sheet.
 - Do not modify `original/` or the source `2d-video.plugin`.
 
 **CLI runner** (deterministic stages, no model needed):
@@ -85,12 +86,12 @@ Stage skills re-run one stage: `new-video` (stages 1–4), `video-styles` (5), `
 1. **Keep the narration intact.** Never rewrite, add, drop or reorder spoken words. Every shot illustrates the words spoken while it is on screen.
 2. **Same style, new pictures.** Invent sets, props, characters and actions from this script. Use `examples/reaction-time` only to learn the API.
 3. **Show what is said, literally and specifically.** Abstract lines become visual metaphors, diagrams or close-up reactions.
-4. **Draft, look, fix, then render.** Open contact sheets and stills yourself (read the PNGs with `view_image`) before any full render. Rendering is slow; looking is fast.
+4. **Draft, look, fix, then render.** Open contact sheets and stills yourself (read the PNGs with `read_image`) before any full render. Rendering is slow; looking is fast.
 5. **Three user checkpoints:** setup choices, style choice from rendered samples, and the preview before the final render. If the user is away, take the defaults, state what was assumed, and continue.
 6. **Files are the truth.** Each video lives in `2d-video/projects/<slug>/`, and `story/shots.json` owns all timing.
 
 ## Stage 1: Intake
-Ask once (`ask_user` when available) for:
+Ask once (`ask_user_question` when available) for:
 - **Voiceover file** (required).
 - **Script:** timestamped (SRT/VTT/JSON/TXT with `[mm:ss]`), plain text (best: aligned to the audio, keeping exact wording), or none (transcribed).
 - **Aspect:** 16:9 or 9:16.
@@ -102,9 +103,9 @@ Ask once (`ask_user` when available) for:
 Don't ask about style yet. Defaults: language `ru`, speech language same as output, 16:9, 1080p, 24 fps, generated music + SFX, style `dusk`.
 
 ## Stage 2: Install or check the studio
-Follow `references/install.md`, with the Sharrowkin rule that nothing is installed without permission:
-1. The studio is already installed at `2d-video/` (original kit + the three intentional patches in `patches/`). If it is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` — never overwrite an existing `projects/`.
-2. Run `cd 2d-video; python tools/verify_kit.py` (must report 29/29, including 3 intentional patches) and, from the workspace root, `python tools/2dvideo.py doctor`.
+Follow `references/install.md`, with the project rule that nothing is installed without permission:
+1. The studio is already installed at `2d-video/` (original kit + five intentional patches in `patches/`). If it is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` — never overwrite an existing `projects/`.
+2. Run `cd 2d-video; python tools/verify_kit.py` (must report 29/29, including 5 intentional patches) and, from the workspace root, `python tools/2dvideo.py doctor`.
 3. Report every MISSING line to the user in one short list with the exact fix command, and **wait for permission** before running `npm install`, `npx playwright install chromium` or `pip install -r requirements.txt`.
 4. Run the example self-test only when the dependencies are present: `cd 2d-video; node render.mjs --project examples/reaction-time --sheet --scale 0.3`.
 
@@ -127,12 +128,12 @@ Build the 1–2 most-used sets plus 3 representative shots (a wide shot with ≥
 ```bash
 node render.mjs --project projects/<slug> --styles dusk,midnight,golden,neon,storybook --at <t1>,<t2>,<t3> --scale 0.5
 ```
-Open `build/styles/style_grid.png` with `view_image`, then show it with one line per style: **dusk** (mauve shadows, amber key, cream rim), **midnight** (cold navy, blue-white rims, sodium practicals), **golden** (warm orange and teal), **neon** (deep blacks, magenta and teal), **storybook** (soft pastel, low contrast). Save the pick in `config.json` → `style`. For tweaks, add a custom entry to `STYLES` in `engine/styles.js` (moods overrides plus the `grade` lift/gamma/gain, sat, contrast, vignette, grain, bloom) and re-render that row.
+Open `build/styles/style_grid.png` with `read_image`, then show it with one line per style: **dusk** (mauve shadows, amber key, cream rim), **midnight** (cold navy, blue-white rims, sodium practicals), **golden** (warm orange and teal), **neon** (deep blacks, magenta and teal), **storybook** (soft pastel, low contrast). Save the pick in `config.json` → `style`. For tweaks, add a custom entry to `STYLES` in `engine/styles.js` (moods overrides plus the `grade` lift/gamma/gain, sat, contrast, vignette, grain, bloom) and re-render that row.
 
 ## Stage 6: Build every shot
 Read `references/engine-api.md` and the example scenes in `examples/reaction-time/scenes/` once. Work in batches of 8–12 shots:
 1. Write `scenes/sets/<location>.js` (reusable, anchored to `GY = E.H * V(0.8, 0.68)` and `CX = E.W/2`, with walls, floor and sky extended past the frame) and `scenes/shots/NN_<name>.js` with `registerShot('<id>', {...})` for the ids in shots.json.
-2. Run `node render.mjs --project projects/<slug> --sheet --scale 0.5`. Open every `build/sheets/sheet_XX.png` with `view_image` and check it against the QC checklist in `references/render-qc.md`. Fix any MISSING shots, errors printed by the renderer, and composition problems.
+2. Run `node render.mjs --project projects/<slug> --sheet --scale 0.5`. Open every `build/sheets/sheet_XX.png` with `read_image` and check it against the QC checklist in `references/render-qc.md`. Fix any MISSING shots, errors printed by the renderer, and composition problems.
 3. Check motion with `--stills t1,t2,t3` or `--from A --to B --scale 0.5` (writes `build/preview.mp4`).
 
 Non-negotiables from the style bible:
@@ -151,7 +152,7 @@ Read `references/sound-design.md`. Fill `story/shots.json` → `music` (contiguo
 ## Stage 8: Render and deliver
 Read `references/render-qc.md`.
 1. Preview: `node render.mjs --project projects/<slug> --from 0 --to 30 --scale 0.5`. Show the user the preview or a contact sheet before the long render.
-2. Final: `node render.mjs --project projects/<slug>`. Run it with `run_background` for long videos and poll the log with `process_output`. The log prints fps and ETA, so share the estimate.
+2. Final: `node render.mjs --project projects/<slug>`. Run it with фоновый job (`bash`/`pwsh`) for long videos and poll the log with `job_output`. The log prints fps and ETA, so share the estimate.
 3. Run `python tools/2dvideo.py mix --project projects/<slug>`, which generates music and SFX, ducks the music under the voice, normalises to −14 LUFS and muxes `out/<title>.mp4`.
 4. QC the final file: duration matches, audio is present, and a 1-frame-per-10-s contact sheet looks right. Deliver the MP4 (give the path), then give the location in plain words and one line on what to tweak next if needed.
 
