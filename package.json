@@ -5,6 +5,7 @@
   "description": "2D Video plugin ported from Claude to Sharrowkin (DeepSeek Flash). The studio itself lives in 2d-video/ and keeps its own package.json.",
   "scripts": {
     "test": "python .sharrowkin/scripts/check_all.py",
+    "test:integration": "python .sharrowkin/scripts/check_integration.py",
     "check": "python .sharrowkin/scripts/check_all.py",
     "doctor": "cd 2d-video && python tools/doctor.py"
   }

@@ -12,6 +12,8 @@ original/             распакованный оригинал, read-only ref
 Ifverse/              reserved future-integration workspace; НЕ ТРОГАТЬ (R17)
 tools/2dvideo.py      CLI-обёртка над студией
 patches/              намеренные отличия от оригинала
+tests/                unit/regression тесты (20 методов)
+.github/              CI workflow
 requirements.txt      core/TTS: numpy, scipy
 requirements-whisper.txt  optional legacy: faster-whisper, ctranslate2
 bootstrap.ps1/.sh     read-only preflight, ничего не устанавливает

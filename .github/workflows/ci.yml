@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Python venv
+        run: |
+          python -m venv .venv-whisper
+          .venv-whisper/bin/python -m pip install --upgrade pip
+          .venv-whisper/bin/pip install -r requirements.txt
+
+      - name: Install studio dependencies
+        working-directory: 2d-video
+        run: npm ci
+
+      - name: Install Chromium
+        working-directory: 2d-video
+        run: npx playwright install --with-deps chromium
+
+      - name: Fast gate
+        run: npm test
+
+      - name: Integration smoke
+        run: npm run test:integration

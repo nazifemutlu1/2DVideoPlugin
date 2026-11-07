@@ -50,6 +50,8 @@ python tools/2dvideo.py render --project projects/test
 python tools/2dvideo.py mix --project projects/test
 ```
 
+Быстрый gate: `npm test`. Integration smoke (16:9/9:16 sheet, preview, короткий mux): `npm run test:integration`.
+
 Runner сам выбирает Python в таком порядке: `--python` → `PYTHON`/`PYTHON_EXE` → `.venv-whisper` → системный. `--project` принимает `projects/x`, `2d-video/projects/x` или абсолютный путь — одинаково для всех команд.
 
 ```powershell

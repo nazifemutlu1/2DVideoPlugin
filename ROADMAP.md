@@ -1,6 +1,6 @@
 # ROADMAP: 2DVideoPlugin → production-ready
 
-Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3, R5, R7 и R8 выполнены**; R4 пере-сформулирован под **TTS через внешний API** и ждёт API-фикстуру; R6 выполнен кроме R6.3; R9–R11 в основном выполнены; R12 почти выполнен (R12.5 — частично); следующий исполнимый пункт — R13. Этот файл — источник истины по порядку работ.
+Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3, R5, R7 и R8 выполнены**; R4 пере-сформулирован под **TTS через внешний API** и ждёт API-фикстуру; R6 выполнен кроме R6.3; R9–R12 в основном выполнены; R13 в основном выполнен (CI workflow есть, dsp-тест и прогон GitHub — нет); следующий исполнимый пункт — R14. Этот файл — источник истины по порядку работ.
 
 > **Проект не закрывается на R15.** R15 — это стабильный baseline, а не финальная заморозка. После него ожидаются интеграции (TTS, стили, внешний API/сервис); они вынесены в R16–R17. Поэтому упаковка и release-freeze не делаются, пока не определён scope интеграции.
 >
@@ -337,13 +337,20 @@
 
 ## R13. Тесты и CI — P2
 
-- [ ] R13.1 Unit-тесты: `parse_script`, `beats`, `dsp`, `mix` (на коротких фикстурах).
-- [ ] R13.2 Integration: render sheet 16:9/9:16, preview, mux.
-- [ ] R13.3 CI: syntax + unit + integrity + короткий render; без сети/модели или с mock.
-- [ ] R13.4 `npm test` запускает всё; отдельный `npm run test:integration`.
-- [ ] R13.5 Coverage/отчёт не обязателен, но failures должны быть воспроизводимы.
+- [~] R13.1 Unit-тесты: `parse_script`, `beats`, `music`, `mix` покрыты audit-regressions; `dsp` напрямую — нет.
+- [x] R13.2 Integration: render sheet 16:9/9:16, preview, mux.
+- [~] R13.3 CI: workflow добавлен; локально `npm test` + integration PASS; GitHub runner не запускался.
+- [x] R13.4 `npm test` — быстрый gate; отдельный `npm run test:integration`.
+- [x] R13.5 Failures воспроизводимы: `npm run test:integration` + лог команд.
 
 **DoD:** CI зелёный; регрессии ловятся до ручного запуска.
+
+**Evidence (2026-11-07):**
+- `npm test` → 6/6 PASS, 20 unit tests.
+- `npm run test:integration` → 16:9 sheet, 9:16 sheet, 2s preview, короткий mux — `INTEGRATION PASS`.
+- [.github/workflows/ci.yml](.github/workflows/ci.yml): Ubuntu, Node 24, Python 3.12, ffmpeg, npm ci, Chromium, `npm test`, integration.
+- [.sharrowkin/scripts/check_integration.py](.sharrowkin/scripts/check_integration.py).
+
 
 ---
 
@@ -413,7 +420,7 @@
 | R10 | P1 | Ошибки/exit codes | R2 | [~] |
 | R11 | P1 | GPU/производительность | R2 | [~] |
 | R12 | P1 | Документация | R2–R6 | [~] |
-| R13 | P2 | Тесты/CI | R1–R12 | [ ] |
+| R13 | P2 | Тесты/CI | R1–R12 | [~] |
 | R14 | P2 | E2E-приёмка | R1–R13 | [ ] |
 | R15 | P2 | Релиз | R14 | [ ] |
 
