@@ -27,7 +27,8 @@
 - Эталонный render sheet — PASS: 14 кадров + contact sheet.
 - 9:16 sheet — PASS: 5 кадров 540×960.
 - Финальный MP4 из `whisper_en_e2e` — H.264 + AAC, 9.893 s, −14.5 LUFS.
-- Whisper: установлена только `small.en` (English-only). Для русского нужна многоязычная модель — это R4 в `ROADMAP.md`.
+- Основной путь озвучки — **TTS + SRT/JSON**: `init --voice ... --script ...` и `timeline --mode timestamps`. Whisper не требуется.
+- Whisper `small.en` остаётся только как legacy-опция для английского; для русского TTS-путь не использует модель.
 
 Полные доказательства и открытые P0/P1 — в [AUDIT.md](AUDIT.md) и [ROADMAP.md](ROADMAP.md).
 
@@ -84,7 +85,7 @@ npx playwright install chromium
 
 ## Ограничения
 
-- Английская Whisper-модель по умолчанию; для `ru` нужна многоязычная модель (R4).
+- TTS + SRT/JSON не использует Whisper; legacy-путь с Whisper `small.en` ограничен английским.
 - Полный длинный рендер 4K не проверялся; проверены sheet, 9:16 sheet, preview и финальный 9.9-секундный MP4.
 - Художественная оценка кадров требует image-capable модели; текущая модель не читает PNG через `read_image`.
 - Skills пока содержат runtime-имена Sharrowkin (`run_command`, `view_image` и т.п.); адаптация — R5.
