@@ -1,0 +1,4 @@
+# Optional legacy Whisper stack. Install only when you explicitly need STT.
+-r requirements.txt
+faster-whisper==1.2.1
+ctranslate2==4.8.3

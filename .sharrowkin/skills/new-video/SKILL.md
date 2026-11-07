@@ -55,9 +55,9 @@ Run the CLI from the workspace root:
 ```bash
 python tools/2dvideo.py init --name <slug> --lang <language> --speech-lang <speech-language> --voice "<voiceover>" [--script "<script>"] --aspect <16:9|9:16> --resolution <res> --title "<title>" [--captions]
 ```
-- **Timestamped script** → `python tools/2dvideo.py timeline --project projects/<slug> --mode timestamps --script projects/<slug>/input/script.<ext>`. It accepts SRT, VTT, JSON (`[{start,end,text}]`, `{segments}`, `{words}`) and TXT lines like `[00:12.5] text`, `00:12 - 00:15 text` or `00:00:12,500 --> 00:00:15,000 text`. If the parser reports no timestamps, fall back to the plain-script route.
-- **Plain script** → `python tools/2dvideo.py timeline --project projects/<slug> --mode plain --script projects/<slug>/input/script.txt --lang <speech-language> --model <local-model-dir>`. It keeps the script's exact words with Whisper timing. Require ≥ 90% match; if lower, tell the user the script and audio differ.
-- **No script** → `python tools/2dvideo.py timeline --project projects/<slug> --mode whisper --lang <speech-language> --model <local-model-dir>`. The model must exist locally; ask before downloading one.
+- **Timestamped script** → `python tools/2dvideo.py timeline --project projects/<slug> --mode timestamps --script projects/<slug>/input/script.<ext>`. It accepts SRT, VTT, JSON (`[{start,end,text}]`, `{segments}`, `{words}`) and TXT lines like `[00:12.5] text`, `00:12 - 00:15 text` or `00:00:12,500 --> 00:00:15,000 text`. This is the primary TTS path; Whisper is not called.
+- **Plain script** → `python tools/2dvideo.py timeline --project projects/<slug> --mode plain --audio <separate-audio> --script projects/<slug>/input/script.txt --lang <speech-language> --model <local-model-dir>`. It keeps the script's exact words with Whisper timing. Require ≥ 90% match; if lower, tell the user the script and audio differ.
+- **No script** → `python tools/2dvideo.py timeline --project projects/<slug> --mode whisper --audio <separate-audio> --lang <speech-language> --model <local-model-dir>`. **Whisper always gets a separate audio file via `--audio`; never pass TTS output or project voiceover automatically.** The model must exist locally; ask before downloading one.
 
 Open `timeline/transcript.txt` and confirm it reads correctly and ends near the voiceover length. Then run `python tools/2dvideo.py beats --project projects/<slug>` (add `--force` to overwrite an existing shots.json).
 

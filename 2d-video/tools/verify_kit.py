@@ -61,7 +61,7 @@ EXPECTED = {
     "tools/doctor.py": "d6b56eb3e93680cc",
     "tools/new_project.py": "0bf5785a04786c55",
     "tools/parse_script.py": "5163cf3162b2579b",
-    "tools/transcribe.py": "32ee346236610dc1",
+    "tools/transcribe.py": "fef7d16a6db0ee14",
 }
 
 

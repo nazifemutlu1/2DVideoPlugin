@@ -9,7 +9,7 @@
 | `2d-video.plugin` | исходный архив, не изменяется |
 | `original/` | распакованный оригинал; read-only reference |
 | `2d-video/` | рабочая студия: код + намеренные патчи (CSP, security, offline Whisper) |
-| `.venv-whisper/` | рабочий Python 3.12 с numpy/scipy/faster-whisper (не коммитится) |
+| `.venv-whisper/` | рабочий Python 3.12 с numpy/scipy; faster-whisper — optional legacy (не коммитится) |
 | `.sharrowkin/skills/` | skills и references |
 | `tools/2dvideo.py` | CLI-обёртка над студией |
 | `patches/` | намеренные отличия от оригинала (CSP, security, offline Whisper, runtime-python) + инструкция |
@@ -21,7 +21,7 @@
 - Node.js 24.21.0, npm 11.19.0, FFmpeg 9.0.2 — есть.
 - `2d-video/node_modules` установлены: `three`, `playwright`, три `@fontsource`.
 - Chromium для Playwright установлен.
-- `.venv-whisper`: Python 3.12.10, numpy 2.5.4, scipy 1.18.1, faster-whisper 1.2.1.
+- `.venv-whisper`: Python 3.12.10, numpy 2.5.4, scipy 1.18.1; faster-whisper 1.2.1 — optional legacy.
 - Системный Python 3.14 **не содержит** numpy/scipy/faster-whisper; используйте runner или venv.
 - `npm test` — PASS: Python syntax, ESM syntax, kit 29/29, environment 13/13.
 - Эталонный render sheet — PASS: 14 кадров + contact sheet.
@@ -63,6 +63,27 @@ python tools/2dvideo.py --python ".\.venv-whisper\Scripts\python.exe" doctor
 
 Сцены (`scenes/shots/*.js`) пишет модель по правилам из `references/style-bible.md` и `engine-api.md`.
 
+## Whisper — только отдельное аудио
+
+Основной путь — **TTS + SRT/JSON**; Whisper в нём не участвует и не вызывается автоматически.
+
+Если нужен legacy-Whisper, ему всегда подаётся **отдельный аудиофайл**:
+
+```powershell
+python tools/2dvideo.py timeline `
+  --project projects/test `
+  --mode whisper `
+  --audio "C:\audio\whisper_input.wav" `
+  --model "C:\models\faster-whisper-small" `
+  --lang en
+```
+
+Правила:
+
+- `--audio` обязателен; проектный `voiceover` и TTS-озвучка **не подставляются** по умолчанию;
+- `--model` — локальный каталог CTranslate2; автоскачивания нет;
+- TTS-путь (`--mode timestamps`) Whisper не требует и `--audio` не использует.
+
 ## Зависимости и первый запуск
 
 Ничего не устанавливается автоматически. Проверка и точные команды:
@@ -79,6 +100,12 @@ python -m venv .venv-whisper
 cd 2d-video
 npm install
 npx playwright install chromium
+```
+
+`requirements.txt` — только core/TTS (`numpy`, `scipy`). Legacy Whisper ставится отдельно:
+
+```powershell
+.\.venv-whisper\Scripts\python.exe -m pip install -r requirements-whisper.txt
 ```
 
 `bootstrap.ps1` только проверяет окружение и печатает команды; он ничего не устанавливает.

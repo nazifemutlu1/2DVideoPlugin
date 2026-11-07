@@ -95,12 +95,17 @@ def check_python() -> None:
     add("Python interpreter", f"{py} ({'venv' if py == VENV else 'host'})", py.is_file())
     if not VENV.is_file():
         add("Python venv", f"missing {VENV}", False)
-    code = "import importlib.util as u; print(' '.join(f'{m}={bool(u.find_spec(m))}' for m in ('numpy','scipy','faster_whisper')))"
+    code = "import importlib.util as u; print(' '.join(f'{m}={bool(u.find_spec(m))}' for m in ('numpy','scipy')))"
     try:
         out = run([str(py), "-c", code], timeout=120).stdout.strip()
-        add("Python packages", out, all(v.endswith("True") for v in out.split()))
+        add("Python packages (core/TTS)", out, all(v.endswith("True") for v in out.split()))
     except Exception as exc:  # noqa: BLE001
-        add("Python packages", str(exc), False)
+        add("Python packages (core/TTS)", str(exc), False)
+    try:
+        legacy = run([str(py), "-c", "import importlib.util as u; print(bool(u.find_spec('faster_whisper')))"], timeout=120).stdout.strip() == "True"
+        add("Whisper legacy (optional)", "installed" if legacy else "not installed; TTS path does not need it", True)
+    except Exception as exc:  # noqa: BLE001
+        add("Whisper legacy (optional)", str(exc), True)
 
 
 def check_chromium() -> None:

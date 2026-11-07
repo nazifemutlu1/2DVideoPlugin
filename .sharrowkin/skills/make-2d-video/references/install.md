@@ -39,7 +39,7 @@ Nothing is installed automatically. Tell the user in one short list what is bein
 | Chromium | `cd 2d-video; npx playwright install chromium` | same (`install-deps` on Linux if needed) |
 | Python packages | `python -m venv .venv-whisper; .\.venv-whisper\Scripts\python.exe -m pip install -r requirements.txt` | `python3 -m venv .venv-whisper; ./.venv-whisper/bin/python -m pip install -r requirements.txt` |
 
-`requirements.txt` pins numpy/scipy/faster-whisper/ctranslate2. It is not needed for the primary TTS + SRT path, but the CLI's environment gate expects the venv.
+`requirements.txt` — core/TTS (`numpy`, `scipy`); `requirements-whisper.txt` — optional legacy Whisper (`faster-whisper`, `ctranslate2`). The environment gate requires the venv, but **not** `faster_whisper` for the TTS path.
 
 ## 4. Check and self-test
 
@@ -65,7 +65,7 @@ It runs Python syntax, ESM syntax, skills-runtime lint, kit integrity and enviro
 
 ## Notes
 
-- TTS + SRT/JSON is the primary voice path: `init --voice ... --script ...` then `timeline --mode timestamps`. Whisper is legacy-only and its model is **not downloaded automatically**; pass a local `--model` directory if needed.
+- TTS + SRT/JSON is the primary voice path: `init --voice ... --script ...` then `timeline --mode timestamps`. Whisper is legacy-only and its model is **not downloaded automatically**; it always needs a **separate audio file** via `--audio` and a local `--model` directory.
 - On Linux servers Chromium uses SwiftShader (`--gl swiftshader`); CPU rendering is slower.
 - Disk: node_modules + Chromium ≈ 600 MB, venv ≈ 420 MB, Whisper model (optional) ≈ 486 MB, plus renders.
 - Updating: apply the current `patches/` to the new kit; never overwrite `projects/`.

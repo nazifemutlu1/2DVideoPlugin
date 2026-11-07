@@ -25,7 +25,7 @@ git -c core.autocrlf=false apply --reverse --check ..\patches\runtime-python.pat
 | Патч | Файл | Зачем | SHA-256 результата |
 |---|---|---|---|
 | `player-csp.patch` | `player.html` | CSP: запрет внешних скриптов/фреймов, разрешён import map по SHA-256 | `8a5a4a2bf897dd56d355e5c4466af5d4ea4afd554bb57f62c447affcf301d2ce` |
-| `transcribe-offline.patch` | `tools/transcribe.py` | локальная CTranslate2-модель, без автоскачивания; `--model` обязателен | `7bce5421d5c977f37c41e9f7ce60407c05434fd1f9d6e19b608e3c8d6f1dfde4` |
+| `transcribe-offline.patch` | `tools/transcribe.py` | локальная CTranslate2-модель, без автоскачивания; `--audio` обязателен, `--model` указывает на локальный каталог | `2024bf4e364bf4a66dfd59e6d9e9bea687a76f7c229f62230651c89000d5be50` |
 | `render-http-security.patch` | `render.mjs` | T1.2C: только `127.0.0.1`, allowlist, realpath containment, route guard, GET/HEAD | `e94f1508b5823a5ddabd9cfcc8e1ab3e202b7e33c7e2e3c371b4d23670a9d605` |
 | `runtime-python.patch` | `tools/common.py`, `tools/doctor.py` | R2: единый Python/venv, ленивый numpy, явный выбранный интерпретатор в doctor | `common` `719d9452…`, `doctor` `d6b56eb3…` |
 

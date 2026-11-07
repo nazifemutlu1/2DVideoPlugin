@@ -1,6 +1,9 @@
 """tools/transcribe.py — word-level timestamps for a voiceover with faster-whisper.
 
-  python tools/transcribe.py --project projects/my-video [--model small] [--lang en] [--script input/script.txt]
+  python tools/transcribe.py --project projects/my-video --audio <separate-audio> --model <local-model-dir> [--lang en] [--script input/script.txt]
+
+Whisper is a separate legacy tool: the audio file is always passed explicitly
+with --audio; it is never taken from project voiceover or TTS automatically.
 
 If a plain-text script is given, its exact wording is kept and aligned onto Whisper's word timings
 (so on-screen text and captions use the script's spelling, not Whisper's guesses).
@@ -46,7 +49,7 @@ def align_script(script_text, wwords):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--project", required=True)
-    ap.add_argument("--audio", help="defaults to config.json voiceover")
+    ap.add_argument("--audio", required=True, help="separate audio file for Whisper; never pass TTS output automatically")
     ap.add_argument("--model", default=None, help="local CTranslate2 model directory (offline; no auto-download)")
     ap.add_argument("--lang", default=None, help="source language; defaults to project speechLanguage/language, then ru; auto detects")
     ap.add_argument("--script", help="plain-text script to align (keeps exact wording)")
@@ -54,7 +57,9 @@ def main():
     cfg = load_json(os.path.join(a.project, "config.json"))
     lang = a.lang or cfg.get("speechLanguage") or cfg.get("language") or "ru"
     lang = None if lang == "auto" else lang
-    audio_path = a.audio or os.path.join(a.project, cfg["voiceover"])
+    audio_path = a.audio
+    if not os.path.isfile(audio_path):
+        sys.exit(f"audio file not found: {audio_path}")
     if not a.model:
         sys.exit("--model must point to a local CTranslate2 Whisper model directory")
     if not os.path.isdir(a.model):

@@ -129,7 +129,8 @@ def cmd_check(_a) -> int:
     ok = True
     ok = require_ffmpeg() and ok
     ok = require_node_modules() and ok
-    ok = require_python_deps(("numpy", "scipy", "faster_whisper")) and ok
+    ok = require_python_deps(("numpy", "scipy")) and ok
+    print("Whisper: legacy/optional; only with explicit --audio and a local --model.")
     return 0 if ok else 2
 
 
@@ -172,6 +173,11 @@ def cmd_timeline(a) -> int:
             mode = "timestamps" if Path(script).suffix.lower() in (".srt", ".vtt", ".json") else "plain"
     if mode == "timestamps":
         return run([PY, "tools/parse_script.py", "--project", a.project, "--script", script])
+    if not a.audio:
+        return fail("Whisper работает только с отдельным аудио: укажите --audio <file>. Не подавайте TTS-озвучку автоматически.")
+    audio = Path(a.audio).expanduser()
+    if not audio.is_file():
+        return fail(f"файл для Whisper не найден: {audio}")
     if not require_python_deps(("numpy", "faster_whisper")):
         return 2
     if not Path(PY).is_file():
@@ -182,11 +188,12 @@ def cmd_timeline(a) -> int:
     os.environ["HF_HUB_OFFLINE"] = "1"
     os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
     model_arg = str(model.resolve())
+    audio_arg = str(audio.resolve())
     if mode == "plain":
-        return run([PY, "tools/transcribe.py", "--project", a.project, "--script", script,
+        return run([PY, "tools/transcribe.py", "--project", a.project, "--audio", audio_arg, "--script", script,
                     "--lang", a.lang or cfg.get("speechLanguage") or cfg.get("language") or "ru",
                     "--model", model_arg])
-    return run([PY, "tools/transcribe.py", "--project", a.project,
+    return run([PY, "tools/transcribe.py", "--project", a.project, "--audio", audio_arg,
                 "--lang", a.lang or cfg.get("speechLanguage") or cfg.get("language") or "ru",
                 "--model", model_arg])
 
@@ -308,6 +315,7 @@ def main() -> int:
     p.add_argument("--project", required=True)
     p.add_argument("--script")
     p.add_argument("--mode", default="auto", choices=["auto", "timestamps", "plain", "whisper"])
+    p.add_argument("--audio", help="ОТДЕЛЬНЫЙ аудиофайл только для Whisper; TTS-озвучка сюда не подаётся автоматически")
     p.add_argument("--model", default=None,
                    help="локальная папка CTranslate2 (по умолчанию WHISPER_MODEL или small.en snapshot)")
     p.add_argument("--lang")

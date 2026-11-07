@@ -122,17 +122,27 @@
 
 **Цель:** TTS-ролик проходит `init → timeline → beats` без Whisper и без скачивания моделей.
 
+**Жёсткое правило:** Whisper — отдельный инструмент. Ему всегда подаётся **отдельный аудиофайл** через `--audio`; project `voiceover` и TTS-озвучка **не подставляются автоматически**. TTS-путь (`--mode timestamps`) Whisper не вызывает.
+
 - [ ] R4.1 Зафиксировать TTS-контракт: `init --voice <wav|mp3> --script <srt|vtt|json>`; `timeline --mode timestamps`; текст и тайминги берутся из TTS-файла, не из распознавания.
 - [ ] R4.2 Если TTS не даёт тайминги — требовать SRT/JSON; не подменять их `.en`-моделью и не делать «примерную» раскладку без предупреждения.
 - [ ] R4.3 Проверить, что `--mode auto` для `.srt/.vtt/.json` **не вызывает Whisper**; добавить тест с русским TTS WAV + SRT.
 - [ ] R4.4 Добавить фикстуру русской TTS-озвучки + SRT и прогнать `init → timeline → beats → status`; проверить, что words/sentences совпадают с SRT.
-- [ ] R4.5 Legacy-путь: Whisper только по явному локальному пути; `.en` + не-`en` — понятная ошибка; автоскачивания нет.
-- [ ] R4.6 Обновить README/install/SKILL: TTS + SRT — основной путь; Whisper — опциональный legacy.
-- [ ] R4.7 Разделить зависимости: core/TTS (`numpy`, `scipy`) и legacy Whisper (`faster-whisper`); `check_env`/`2dvideo check` не должны требовать `faster_whisper` для TTS-пути.
+- [~] R4.5 Legacy-путь: Whisper только с явным `--audio` и локальным `--model`; `.en` + не-`en` — понятная ошибка; автоскачивания нет.
+- [x] R4.6 Обновить README/install/SKILL: TTS + SRT — основной путь; Whisper — опциональный legacy с отдельным аудио.
+- [x] R4.7 Разделить зависимости: core/TTS (`numpy`, `scipy`) и legacy Whisper (`faster-whisper`); `check_env`/`2dvideo check` не требуют `faster_whisper` для TTS-пути.
 
-**DoD:** русский TTS WAV + SRT проходит `init → timeline → beats` без Whisper, без модели и без сети; текст/тайминги совпадают с SRT; legacy-путь с Whisper не ломает этот сценарий.
+**DoD:** русский TTS WAV + SRT проходит `init → timeline → beats` без Whisper, без модели и без сети; текст/тайминги совпадают с SRT; legacy-путь с Whisper требует отдельный `--audio` и не ломает TTS-сценарий.
 
-**Статус:** `[~]` — решение принято, реализация ждёт TTS-провайдера/фикстуру (WAV + SRT или word timings).
+**Статус:** `[~]` — TTS-контракт и разделение зависимостей готовы; ждёт TTS-фикстуру (WAV + SRT/JSON или word timings) и финальный тест русского TTS.
+
+**Evidence (частично, 2026-11-07):**
+- `timeline --mode whisper` без `--audio` → exit 2, «Whisper работает только с отдельным аудио».
+- `timeline --mode whisper --audio <file> --model <local-dir>` → exit 0, 14 слов.
+- `check_env` → 14 checks, core/TTS = numpy/scipy; `Whisper legacy (optional)` не валит gate.
+- `requirements.txt` — core/TTS; `requirements-whisper.txt` — optional legacy.
+- `--audio` проброшен в `transcribe.py`; project voiceover/TTS туда автоматически не попадают.
+
 
 
 ---
