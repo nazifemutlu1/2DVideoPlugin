@@ -42,6 +42,19 @@ export const STYLES = {
     grade: { contrast: 1.15, sat: 1.4, lift: [0.01, 0.0, 0.04], gamma: [1.0, 0.9, 1.06], gain: [1.12, 0.86, 1.18], vignette: 0.7, grain: 0.06, bloom: 0.9 },
     moods: { dusk: { sky: ['#120a2a', '#3a1a5a', '#a03a8a', '#ff7a9a'], rim: '#ff6ac8', key: '#ff8ad0', practical: '#5ff2e8' }, night: { sky: ['#06061a', '#140f3a', '#2a1a5a'], rim: '#5ff2e8', practical: '#ff4fa3' }, interiorWarm: { rim: '#ff7ab8', practical: '#5ff2e8', wall: '#2a1e3a' }, day: { rim: '#7ff0ff' } },
   },
+  studio3d: {
+    name: 'Studio 3D / Neon Blueprint', desc: 'Reference 3D language: near-black navy, cold teal rims, amber practicals, low-poly procedural geometry, fog, blueprint panels, strong bloom.',
+    ink: '#050a14', inkFar: '#141d33', feature: '#eaf7ff', rimWidth: 4,
+    ui: { ...UI, card: 'rgba(7,15,24,.78)', cardLine: 'rgba(143,255,224,.28)', text: '#b9d8e8', sub: '#6f91a6', accent: '#8fffe0', gold: '#ffbf7a', cream: '#fff1dc', blueprint: '#7bdcff', bpBg: '#07121e', good: '#8fffb0' },
+    grade: { contrast: 1.08, sat: 0.95, lift: [0.0, 0.02, 0.07], gamma: [0.94, 0.99, 1.06], gain: [0.90, 0.98, 1.12], vignette: 0.68, grain: 0.05, bloom: 0.82 },
+    moods: {
+      dusk: { sky: ['#050a14', '#0c1930', '#242b46'], key: '#c9e6ff', rim: '#8fffe0', wall: '#182338', floor: '#0d1422', practical: '#ffbf7a' },
+      night: { sky: ['#030711', '#0a1428', '#1b2a44'], key: '#b9e6ff', rim: '#8fffe0', wall: '#131e30', floor: '#080d17', practical: '#ffbf7a' },
+      storm: { sky: ['#080d18', '#17233a', '#2a3a55'], key: '#dceaff', rim: '#8fffe0', practical: '#ffbf7a' },
+      interiorCool: { sky: ['#07111e', '#182b42'], ambient: '#152235', key: '#b9e6ff', rim: '#8fffe0', wall: '#1b2a3e', floor: '#0e1826', practical: '#ffbf7a' },
+      void: { sky: ['#02050b', '#081224'], ambient: '#0b1524', key: '#dceaff', rim: '#8fffe0', wall: '#0b1524', floor: '#050a12', practical: '#ffbf7a' },
+    },
+  },
   storybook: {
     name: 'Soft Storybook', desc: 'Lighter pastel palette, lower contrast, lavender shadows, gentle paper grain — friendlier, family tone.',
     ink: '#1a1622', inkFar: '#4a4258', feature: '#fffaf0', rimWidth: 5, ui: { ...UI, card: 'rgba(40,36,60,.9)', accent: '#ff8a7a', gold: '#ffd98a' },

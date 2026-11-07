@@ -4,7 +4,7 @@ description: >
   This skill should be used when the user asks to "show me style options", "compare the looks", "pick a visual style",
   "make it warmer / darker / more neon", "create a custom style", "change the colour grade", «покажи варианты стиля»,
   «сравни стили», «сделай темнее / теплее» for a 2D Video project. It renders the same shots of the user's story in
-  five preset styles (dusk, midnight, golden, neon, storybook) as a comparison grid, records the choice, and builds
+  six preset styles (dusk, midnight, golden, neon, storybook, studio3d) as a comparison grid, records the choice, and builds
   custom styles.
 metadata:
   version: "0.1.1-sharrowkin.1"
@@ -42,7 +42,7 @@ Pick one time inside each shot (about 45% through it) for the grid columns.
 
 ## 2. Render the grid
 ```bash
-node render.mjs --project projects/<slug> --styles dusk,midnight,golden,neon,storybook --at <t1>,<t2>,<t3> --scale 0.5
+node render.mjs --project projects/<slug> --styles dusk,midnight,golden,neon,storybook,studio3d --at <t1>,<t2>,<t3> --scale 0.5
 ```
 Open `build/styles/style_grid.png` (one row per style) and check it, then show it to the user with one line each:
 - **dusk — Cinematic Dusk:** mauve-purple shadows, amber key light, cream rim light (the reference look).
@@ -50,6 +50,7 @@ Open `build/styles/style_grid.png` (one row per style) and check it, then show i
 - **golden — Golden Hour:** warm orange-and-teal, big sun glows; uplifting and nostalgic.
 - **neon — Neon Noir:** deep blacks, magenta and teal rims, strong bloom; sci-fi, tech, crime.
 - **storybook — Soft Storybook:** lighter pastel, low contrast; family-friendly.
+- **studio3d — Studio 3D / Neon Blueprint:** near-black navy, teal rims, amber practicals, low-poly procedural geometry, fog and blueprint panels; the approved reference language for 3D-heavy projects. See `docs/STYLE_STUDIO3D.md`.
 
 Ask which they want (`ask_user_question` when available).
 

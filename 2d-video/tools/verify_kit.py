@@ -36,6 +36,7 @@ PATCHED = {
     "audio/music.py": "media-fixes.patch",
     "engine/core.js": "media-fixes.patch",
     "engine/player.js": "media-fixes.patch",
+    "engine/styles.js": "media-fixes.patch",
 }
 
 EXPECTED = {
@@ -47,7 +48,7 @@ EXPECTED = {
     "engine/fx2d.js": "d09f93f6d44366fa",
     "engine/player.js": "35aa5b54a07fd709",
     "engine/rig2d.js": "ec2a665e0aa8ffed",
-    "engine/styles.js": "66b00b1b5f87326f",
+    "engine/styles.js": "7a5b149661cdbac7",
     "engine/three-kit.js": "02e249e302b95420",
     "engine/ui2d.js": "a54167c66d043de7",
     "examples/reaction-time/config.json": "9ee341c65b3cfe9a",

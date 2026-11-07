@@ -23,7 +23,7 @@
 - Chromium для Playwright установлен.
 - `.venv-whisper`: Python 3.12.10, numpy 2.5.4, scipy 1.18.1; faster-whisper 1.2.1 — optional legacy.
 - Системный Python 3.14 **не содержит** numpy/scipy/faster-whisper; используйте runner или venv.
-- `npm test` — PASS 6/6: Python syntax, unit tests (20), ESM syntax, skills runtime, kit 29/29 (12 intentional patches), environment 14/14.
+- `npm test` — PASS 6/6: Python syntax, unit tests (20), ESM syntax, skills runtime, kit 29/29 (13 intentional patches), environment 14/14.
 - Эталонный render sheet — PASS: 14 кадров + contact sheet.
 - 9:16 sheet — PASS: 5 кадров 540×960.
 - Финальный MP4 из `whisper_en_e2e` — H.264 + AAC, 9.893 s, −14.5 LUFS.
@@ -156,7 +156,7 @@ node render.mjs --project examples/reaction-time --self-check
 
 - `Ifverse/` — reserved future-integration workspace; сейчас не трогаем, не чистим и не включаем в artifact.
 - TTS через внешний API + SRT/JSON не использует Whisper; legacy-путь с Whisper `small.en` ограничен английским.
-- `vizavi-motion` — optional режиссёрский overlay, не часть основного runtime. Шесть Vizavi-стилей (ink/paper/pixel/SaaS) — backlog R16, а не текущие пресеты. Сейчас выбор стиля — 5 color-grade пресетов `engine/styles.js`.
+- `vizavi-motion` — optional режиссёрский overlay, не часть основного runtime. Шесть Vizavi-стилей (ink/paper/pixel/SaaS) — backlog R16, а не текущие пресеты. Сейчас выбор стиля — 6 пресетов `engine/styles.js` (`dusk`, `midnight`, `golden`, `neon`, `storybook`, `studio3d`).
 - Полный длинный рендер 4K не проверялся; проверены sheet, 9:16 sheet, preview и финальный 9.9-секундный MP4.
 - Skills адаптированы под DSH: `ask_user_question`, `bash`/`pwsh`, `job_output`, `read_image`; слэш-команд нет.
 - Художественная оценка кадров требует image-capable модели; текущая модель не читает PNG через `read_image`.

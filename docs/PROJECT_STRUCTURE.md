@@ -21,7 +21,7 @@ README.md             входная документация
 AUDIT.md              результаты аудита
 ROADMAP.md            план R0–R16
 ENVIRONMENT.md        снимок версий и размеров
-docs/                 структура и служебные документы
+docs/                 структура, бенчмарки, style guide, security report
 dist/                 будущий artifact (R15; в git не входит)
 ```
 

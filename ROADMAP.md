@@ -4,6 +4,8 @@
 
 > **Проект не закрывается на R15.** R15 — это стабильный baseline, а не финальная заморозка. После него ожидаются интеграции (TTS, стили, внешний API/сервис); они вынесены в R16–R17. Поэтому упаковка и release-freeze не делаются, пока не определён scope интеграции.
 >
+> **Стиль:** одобренный 3D-язык зафиксирован как `studio3d` — см. [docs/STYLE_STUDIO3D.md](docs/STYLE_STUDIO3D.md). Это reference для новых проектов, не привязка к одной истории.
+>
 > **Ifverse:** папка `Ifverse/` появилась как зарезервированное место под будущую интеграцию. **Не изменять, не удалять, не чистить, не включать в artifact и не коммитить без отдельного разрешения.** Работа с ней — только в R17 после определения контракта.
 
 ## Правила выполнения
@@ -93,7 +95,7 @@
 - `tools/common.py` импортирует numpy только внутри `load_audio`; `python tools/new_project.py --help` и `beats.py --help` → exit 0 без numpy.
 - `bootstrap.ps1` и `bootstrap.sh` только проверяют и печатают команды; Chromium определяется корректно.
 - `README.md`, `MIGRATION.md` и 5 skills обновлены на `python tools/2dvideo.py` / явный venv.
-- `npm test` → PASS 4/4; `verify_kit` 29/29 (12 intentional patches); CLI `mix` → exit 0.
+- `npm test` → PASS 4/4; `verify_kit` 29/29 (13 intentional patches); CLI `mix` → exit 0.
 
 
 ---
@@ -115,7 +117,7 @@
 - `python tools/2dvideo.py --python C:\Python314\python.exe check` → exit 2, «numpy, scipy, faster_whisper» — корректный негативный тест.
 - `python tools/2dvideo.py mix --project projects/whisper_en_e2e` → exit 0; `ffprobe`: H.264 + AAC, 9.893 s.
 - `python tools/2dvideo.py --python C:\Python314\python.exe mix ...` → exit 2 с понятной командой установки.
-- `npm test` → PASS 4/4; `verify_kit` 29/29 (12 intentional patches).
+- `npm test` → PASS 4/4; `verify_kit` 29/29 (13 intentional patches).
 
 
 ---
@@ -223,7 +225,7 @@
 - `../escape`, `..\escape`, `bad name`, `кириллица`, имя >64 символов → exit 2; запись вне `projects/` не создаётся.
 - Новый проект создаётся; повтор без `--force` → exit 2; с `--force` → exit 0, sentinel scene сохраняется.
 - Битый audio → проект и temp не остаются.
-- `npm test` → PASS 6/6 (добавлены unit tests); `verify_kit` 29/29 (12 intentional patches).
+- `npm test` → PASS 6/6 (добавлены unit tests); `verify_kit` 29/29 (13 intentional patches).
 
 
 ---
@@ -257,7 +259,7 @@
 **Evidence (2026-11-07):**
 - `node render.mjs --project examples/reaction-time --self-check` → `SELF-CHECK PASS (11/11)`.
 - [tests/test_render_security.py](tests/test_render_security.py) → PASS; 9 unit tests total.
-- `npm test` → 6/6, exit 0; kit 29/29, 12 intentional patches.
+- `npm test` → 6/6, exit 0; kit 29/29, 13 intentional patches.
 - Symlink check skipped на Windows (`EPERM`); на Linux должен выполняться.
 - R9.3 (внешний fetch) пока не автоматизирован; CSP и route guard присутствуют, но нужен отдельный browser test.
 
@@ -279,7 +281,7 @@
 **Evidence (2026-11-07):**
 - [tests/test_error_handling.py](tests/test_error_handling.py): 6 тестов, включая empty SRT, bad JSON, empty words, no audio, no ffmpeg.
 - `python -m unittest discover -s tests -v` → 15 тестов OK.
-- `npm test` → 6/6, exit 0; `verify_kit` 29/29, 12 intentional patches.
+- `npm test` → 6/6, exit 0; `verify_kit` 29/29, 13 intentional patches.
 - `parse_script.py`/`beats.py` имеют `FAIL:` и exit 2; `transcribe.py` — exit 2 для отсутствия audio/model/faster-whisper.
 - `render.mjs` проверяет ffmpeg и удаляет `build/parts` при ошибке.
 
@@ -300,7 +302,7 @@
 - `python tools/2dvideo.py doctor`: `torch not installed`, `CUDA available: False`, `Whisper device: cpu`.
 - `WHISPER_DEVICE=cuda` без CUDA/torch → exit 2 с понятной ошибкой.
 - [docs/benchmarks.md](docs/benchmarks.md): 1080p 7 s → 15.12 s (~12.2 fps); 4K still → 2.73 s.
-- `npm test` → 6/6; `verify_kit` 29/29, 12 intentional patches.
+- `npm test` → 6/6; `verify_kit` 29/29, 13 intentional patches.
 
 
 ---
@@ -308,7 +310,7 @@
 ## R12. Документация: truth pass — P1
 
 - [x] R12.1 Обновить `README.md`: фактические версии, venv, модель, права, команды, ограничения.
-- [x] R12.2 Обновить `MIGRATION.md`: 29/29, 12 патчей, реальные артефакты, 43 файла в `original/`.
+- [x] R12.2 Обновить `MIGRATION.md`: 29/29, 13 патчей, реальные артефакты, 43 файла в `original/`.
 - [x] R12.3 Обновить `references/install.md`, `render-qc.md`, `SKILL.md` под текущие команды.
 - [x] R12.4 Добавить troubleshooting: venv, модель, ffmpeg, Chromium, права, кириллица.
 - [~] R12.5 Проверить команды из README: все `--help` (10 команд) exit 0; `doctor/check/status` exit 0; полный render/mix — по ранее снятым evidence, не перезапускались.
@@ -397,10 +399,11 @@
 
 ## R16. Backlog: style grammars (optional, после production-ready)
 
-**Не входит в текущий P0/P1.** Шесть стилей Vizavi (ink, paper, pixel, 2D/2.5D/3D SaaS) — это визуальные грамматики, а не color-grade пресеты. Для них нужны новые scene helpers, шрифты/текстуры, тесты и, возможно, ассетный pipeline. Сейчас штатные стили — 5 пресетов `engine/styles.js` (`dusk`, `midnight`, `golden`, `neon`, `storybook`) плюс custom grade.
+**Не входит в текущий P0/P1.** Шесть стилей Vizavi (ink, paper, pixel, 2D/2.5D/3D SaaS) — это визуальные грамматики, а не color-grade пресеты. Для них нужны новые scene helpers, шрифты/текстуры, тесты и, возможно, ассетный pipeline. Сейчас штатные стили — 6 пресетов `engine/styles.js` (`dusk`, `midnight`, `golden`, `neon`, `storybook`, `studio3d`) плюс custom grade.
 
+- [x] R16.0 Зафиксировать одобренный 3D-стиль `studio3d` (Studio 3D / Neon Blueprint) в `engine/styles.js` и `docs/STYLE_STUDIO3D.md`; не привязывать к одной истории.
 - [ ] R16.1 Определить, что именно нужно: color grade, visual grammar или image-generation pipeline.
-- [ ] R16.2 Спроектировать API стиля без поломки текущих 5 пресетов.
+- [ ] R16.2 Спроектировать API стиля без поломки текущих 6 пресетов.
 - [ ] R16.3 Реализовать 1–2 грамматики как пилот, с тестами и visual QC.
 - [ ] R16.4 Решить, нужны ли внешние image/3D-провайдеры; не добавлять без явного разрешения.
 

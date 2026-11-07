@@ -36,7 +36,7 @@ git -c core.autocrlf=false apply --reverse --check ..\patches\media-fixes.patch
 | `runtime-python.patch` | `tools/common.py`, `tools/doctor.py` | R2/R11: единый Python/venv, ленивый numpy, явный интерпретатор, GPU/device, атомарный timeline | `common` `1bceb5f4…`, `doctor` `23be6329…` |
 | `new-project-safety.patch` | `tools/new_project.py` | R7: slug-only, containment, atomарное создание, force-update с rollback | `3149f32845cb9206194174ff987afbcdfecbcbd3d4e17e943970f4bf15afec11` |
 | `error-handling.patch` | `tools/parse_script.py`, `tools/beats.py` | R10: пустые/битые тайминги, VTT settings, finite/intervals, exit 2 | `parse` `c924861c…`, `beats` `4f066a56…` |
-| `media-fixes.patch` | `engine/core.js`, `engine/player.js`, `audio/music.py`, `audio/mix.py` | R12: Unicode wordTime, детерминированный whip, короткая музыка, отказ обрезки voice | `core` `2a54e4aa…`, `player` `35aa5b54…`, `music` `5be68409…`, `mix` `f000af05…` |
+| `media-fixes.patch` | `engine/core.js`, `engine/player.js`, `engine/styles.js`, `audio/music.py`, `audio/mix.py` | R12/R16: Unicode wordTime, детерминированный whip, короткая музыка, отказ обрезки voice, style `studio3d` | `core` `2a54e4aa…`, `player` `35aa5b54…`, `styles` `7a5b1496…`, `music` `5be68409…`, `mix` `f000af05…` |
 
 Исходные хеши (для сверки):
 
@@ -51,4 +51,4 @@ git -c core.autocrlf=false apply --reverse --check ..\patches\media-fixes.patch
 - `render-http-security.patch` — **только `render.mjs`**. CSP вынесен в отдельный `player-csp.patch`, чтобы патчи применялись независимо.
 - Исходный внешний патч T1.2C содержал и `player.html`, и `render.mjs`; здесь он разделён.
 - Не запускать `backups/t1.2f-*/restore.ps1` для «починки» тестов: он вернёт незащищённые `render.mjs`/`player.html`.
-- `verify_kit` должен считать эти двенадцать файлов ожидаемо изменёнными (R1/R2/R7/R10/R12), а не требовать копирования оригинала.
+- `verify_kit` должен считать эти тринадцать файлов ожидаемо изменёнными (R1/R2/R7/R10/R12/R16), а не требовать копирования оригинала.
