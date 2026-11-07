@@ -1,6 +1,6 @@
 # ROADMAP: 2DVideoPlugin → production-ready
 
-Основание: [AUDIT.md](AUDIT.md). Статус на старте: аудит завершён, исправления **не начаты**. Этот файл — источник истины по порядку работ.
+Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0 выполнен**, следующий — R1. Этот файл — источник истины по порядку работ.
 
 ## Правила выполнения
 
@@ -30,13 +30,21 @@
 
 **Цель:** чтобы каждое следующее исправление было обратимым и проверяемым.
 
-- [ ] R0.1 Инициализировать git (если пользователь не против), добавить `.gitignore`, зафиксировать baseline-коммит.
-- [ ] R0.2 Добавить в `.gitignore`: `node_modules/`, `.venv-whisper/`, `projects/*/build/`, `projects/*/out/`, `__pycache__/`, `*.pyc`, `debug.log`, `%SystemDrive%/`, `.qoder/`, `.whisper-e2e-test/`, `.sharrowkin/checkpoints/`, `.sharrowkin/brain.db`, `.sharrowkin/skills.sqlite`.
-- [ ] R0.3 Зафиксировать текущие версии: Node 24.21.0, npm 11.19.0, venv Python 3.12.10, FFmpeg 9.0.2, Playwright 1.56.0, Chromium 1194, npm-пакеты, Python-пакеты, Whisper small.en.
-- [ ] R0.4 Создать `patches/` и перенести туда три намеренных изменения: CSP, T1.2C security, offline transcribe. Приложить `patches/README.md` с причиной и способом применения.
-- [ ] R0.5 Проверить, что `AUDIT.md` и `ROADMAP.md` не попадают в runtime-артефакт.
+- [x] R0.1 Инициализировать git, добавить `.gitignore`, зафиксировать baseline-коммит.
+- [x] R0.2 Добавить в `.gitignore`: `node_modules/`, `.venv-whisper/`, `projects/*/build/`, `projects/*/out/`, `__pycache__/`, `*.pyc`, `debug.log`, `%SystemDrive%/`, `.qoder/`, `.whisper-e2e-test/`, `.sharrowkin/checkpoints/`, `.sharrowkin/brain.db`, `.sharrowkin/skills.sqlite`.
+- [x] R0.3 Зафиксировать текущие версии: Node 24.21.0, npm 11.19.0, venv Python 3.12.10, FFmpeg 9.0.2, Playwright 1.56.0, Chromium 1194, npm-пакеты, Python-пакеты, Whisper small.en.
+- [x] R0.4 Создать `patches/` и перенести туда три намеренных изменения: CSP, T1.2C security, offline transcribe. Приложить `patches/README.md` с причиной и способом применения.
+- [x] R0.5 Проверить, что `AUDIT.md` и `ROADMAP.md` не попадают в runtime-артефакт.
 
 **DoD:** есть откат, baseline зафиксирован, патчи не потеряны, рабочая копия не изменилась функционально.
+
+**Evidence (2026-11-07):**
+- `git init -b main`; baseline-коммит `531e2df`; `git status --short --branch` → `## main` (чисто).
+- `.gitignore` + `.gitattributes` добавлены; `git check-ignore` подтвердил игнор `node_modules`, `.venv-whisper`, `projects/*/build`, `%SystemDrive%`, `debug.log`.
+- [ENVIRONMENT.md](ENVIRONMENT.md) фиксирует версии и размеры окружения.
+- [patches/README.md](patches/README.md) + 3 патча; на чистых оригиналах с `git -c core.autocrlf=false apply` все три дают хеши, совпадающие с рабочей копией.
+- `AUDIT.md`/`ROADMAP.md` лежат только в корне; в `2d-video/` и `.sharrowkin/skills/` их нет. Финальная проверка package — в R6.
+
 
 ---
 
@@ -238,7 +246,7 @@
 
 | ID | Приоритет | Тема | Зависит от | Статус |
 |---|---|---|---|---|
-| R0 | P0 | Страховка, git, патчи | — | [ ] |
+| R0 | P0 | Страховка, git, патчи | — | [x] |
 | R1 | P0 | Зелёный gate | R0 | [ ] |
 | R2 | P0 | Python/venv | R0 | [ ] |
 | R3 | P0 | CLI mix | R2 | [ ] |
