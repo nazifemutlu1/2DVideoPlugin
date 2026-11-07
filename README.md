@@ -1,30 +1,41 @@
-# 2D Video для Sharrowkin (DeepSeek Flash)
+# 2D Video для Sharrowkin / DeepSeek Harness
 
-Перенос плагина `2d-video.plugin` (Claude) в текущую среду. Движок, рендерер, аудио-инструменты, примеры и стили — оригинальные, без переписывания.
+Порт Claude-плагина `2d-video.plugin`: движок, рендерер, аудио-инструменты, примеры и стили сохранены. Творческие правила — в `.sharrowkin/skills/`.
 
 ## Что где лежит
 
 | Путь | Что это |
 |---|---|
-| `2d-video.plugin` | исходный архив, **не изменяется** |
-| `original/` | распакованный оригинал 1:1 (43 файла), только чтение |
-| `2d-video/` | рабочая студия — побайтовая копия `original/skills/make-2d-video/kit/` |
-| `.sharrowkin/skills/make-2d-video/` | главный skill (весь пайплайн) + `references/` |
-| `.sharrowkin/skills/{new-video,video-styles,render-video,video-sound}/` | stage-skills |
-| `tools/2dvideo.py` | CLI-раннер: обёртка над инструментами студии |
-| `MIGRATION.md` | отчёт о переносе, ограничения, зависимости |
+| `2d-video.plugin` | исходный архив, не изменяется |
+| `original/` | распакованный оригинал; read-only reference |
+| `2d-video/` | рабочая студия: код + намеренные патчи (CSP, security, offline Whisper) |
+| `.venv-whisper/` | рабочий Python 3.12 с numpy/scipy/faster-whisper (не коммитится) |
+| `.sharrowkin/skills/` | skills и references |
+| `tools/2dvideo.py` | CLI-обёртка над студией |
+| `patches/` | намеренные отличия от оригинала (CSP, security, offline Whisper, runtime-python) + инструкция |
+| `requirements.txt` | закреплённые Python-зависимости |
+| `AUDIT.md`, `ROADMAP.md`, `ENVIRONMENT.md` | аудит, план, снимок окружения |
 
-## Как вызвать генерацию
+## Состояние на 2026-11-07
 
-**Диалог (основной путь).** Напишите в чат, например:
+- Node.js 24.21.0, npm 11.19.0, FFmpeg 9.0.2 — есть.
+- `2d-video/node_modules` установлены: `three`, `playwright`, три `@fontsource`.
+- Chromium для Playwright установлен.
+- `.venv-whisper`: Python 3.12.10, numpy 2.5.4, scipy 1.18.1, faster-whisper 1.2.1.
+- Системный Python 3.14 **не содержит** numpy/scipy/faster-whisper; используйте runner или venv.
+- `npm test` — PASS: Python syntax, ESM syntax, kit 29/29, environment 13/13.
+- Эталонный render sheet — PASS: 14 кадров + contact sheet.
+- 9:16 sheet — PASS: 5 кадров 540×960.
+- Финальный MP4 из `whisper_en_e2e` — H.264 + AAC, 9.893 s, −14.5 LUFS.
+- Whisper: установлена только `small.en` (English-only). Для русского нужна многоязычная модель — это R4 в `ROADMAP.md`.
 
-> Сделай 2D-видео из озвучки `C:\audio\voice.mp3`, 16:9, 1080p, русский.
+Полные доказательства и открытые P0/P1 — в [AUDIT.md](AUDIT.md) и [ROADMAP.md](ROADMAP.md).
 
-Sharrowkin сам подхватит skill `make-2d-video` (он виден в списке проектных skills) и пройдёт стадии: проверка студии → тайминги → раскадровка → стиль → сцены → рендер → звук → MP4. Отдельные стадии: `new-video`, `video-styles`, `render-video`, `video-sound`.
+## Как вызывать
 
-**CLI (тот же пайплайн без диалога).** Из корня проекта:
+Из корня проекта:
 
-```bash
+```powershell
 python tools/2dvideo.py doctor
 python tools/2dvideo.py init --name test --voice "C:/audio/voice.mp3" --title "Тест" --lang ru
 python tools/2dvideo.py timeline --project projects/test
@@ -36,15 +47,43 @@ python tools/2dvideo.py render --project projects/test
 python tools/2dvideo.py mix --project projects/test
 ```
 
-Сцены (`scenes/shots/*.js`) пишет модель по правилам из `references/style-bible.md` и `engine-api.md` — это единственная часть, которую нельзя выполнить скриптом.
+Runner сам выбирает Python в таком порядке: `--python` → `PYTHON`/`PYTHON_EXE` → `.venv-whisper` → системный. Явно:
 
-## Состояние
+```powershell
+python tools/2dvideo.py --python ".\.venv-whisper\Scripts\python.exe" doctor
+```
 
-Проверка проекта одной командой: `npm test` — синтаксис Python, синтаксис ESM и целостность студии (`verify_kit` 29/29).
+Прямые команды `python tools/*.py` допустимы только для не-аудио этапов; для Whisper и `audio/mix.py` нужен venv:
 
-- Node.js v24.21.0, npm 11.19.0, Python 3.14.7, FFmpeg 9.0.2 — есть.
-- `2d-video/node_modules` **не установлены** (запрет на установку без разрешения): `three`, `playwright`, `@fontsource/*`.
-- Python-пакеты `numpy`, `scipy`, `faster-whisper` — не проверялись на установку, см. `python tools/2dvideo.py doctor`.
-- Рендер видео не запускался.
+```powershell
+.\.venv-whisper\Scripts\python.exe audio/mix.py --project projects/test
+```
 
-Подробности и ограничения — в `MIGRATION.md`.
+Сцены (`scenes/shots/*.js`) пишет модель по правилам из `references/style-bible.md` и `engine-api.md`.
+
+## Зависимости и первый запуск
+
+Ничего не устанавливается автоматически. Проверка и точные команды:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
+```
+
+Ручная установка (только с разрешения):
+
+```powershell
+python -m venv .venv-whisper
+.\.venv-whisper\Scripts\python.exe -m pip install -r requirements.txt
+cd 2d-video
+npm install
+npx playwright install chromium
+```
+
+`bootstrap.ps1` только проверяет окружение и печатает команды; он ничего не устанавливает.
+
+## Ограничения
+
+- Английская Whisper-модель по умолчанию; для `ru` нужна многоязычная модель (R4).
+- Полный длинный рендер 4K не проверялся; проверены sheet, 9:16 sheet, preview и финальный 9.9-секундный MP4.
+- Художественная оценка кадров требует image-capable модели; текущая модель не читает PNG через `read_image`.
+- Skills пока содержат runtime-имена Sharrowkin (`run_command`, `view_image` и т.п.); адаптация — R5.

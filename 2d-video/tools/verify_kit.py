@@ -4,9 +4,11 @@
   python tools/verify_kit.py --root <dir>    # verify a copy (used by the self-test)
 
 Some files are intentionally different from the original plugin kit:
-  player.html       — CSP
-  render.mjs        — T1.2C loopback/security hardening
+  player.html         — CSP
+  render.mjs          — T1.2C loopback/security hardening
   tools/transcribe.py — local/offline Whisper model
+  tools/common.py     — lazy numpy import
+  tools/doctor.py     — explicit selected interpreter
 They are listed in PATCHED below. A mismatch is a failure unless it is one of
 those files with the expected patched hash. If you intentionally change a
 patched file, update EXPECTED and patches/README.md; do not blindly copy the
@@ -25,6 +27,8 @@ PATCHED = {
     "player.html": "player-csp.patch",
     "render.mjs": "render-http-security.patch",
     "tools/transcribe.py": "transcribe-offline.patch",
+    "tools/common.py": "runtime-python.patch",
+    "tools/doctor.py": "runtime-python.patch",
 }
 
 EXPECTED = {
@@ -53,8 +57,8 @@ EXPECTED = {
     "player.html": "22a3882b61abe1a1",
     "render.mjs": "3eb351aa6d6b1595",
     "tools/beats.py": "0d7160df4e2393bf",
-    "tools/common.py": "e237321f2f12416e",
-    "tools/doctor.py": "c137dadad6a7c8b4",
+    "tools/common.py": "719d9452a233a962",
+    "tools/doctor.py": "d6b56eb3e93680cc",
     "tools/new_project.py": "0bf5785a04786c55",
     "tools/parse_script.py": "5163cf3162b2579b",
     "tools/transcribe.py": "32ee346236610dc1",

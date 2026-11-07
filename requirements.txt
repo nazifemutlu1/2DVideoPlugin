@@ -1,0 +1,10 @@
+# Python dependencies for .venv-whisper (pinned from the working environment).
+# Install only with explicit permission:
+#   python -m venv .venv-whisper
+#   .\.venv-whisper\Scripts\python.exe -m pip install -r requirements.txt
+numpy==2.5.4
+scipy==1.18.1
+faster-whisper==1.2.1
+
+# faster-whisper runtime (pinned to the tested version)
+ctranslate2==4.8.3

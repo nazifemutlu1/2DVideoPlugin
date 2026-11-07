@@ -43,6 +43,7 @@ This is the original Claude plugin, ported to Sharrowkin. The creative rules bel
 **Hard rules for this environment:**
 - Never install anything (npm, pip, `npx playwright install`) and never download a Whisper model without asking the user first and getting a yes.
 - Windows: use `python` (not `python3`), quote paths with spaces, and never use `nohup`, `&` or `$(...)`.
+- **Python command convention:** use `python tools/2dvideo.py ...` from the workspace root; it selects `.venv-whisper` automatically. If a studio script must be called directly, use `.venv-whisper\Scripts\python.exe` (bare host `python` is 3.14 without numpy/scipy).
 - Do not run a full video render until the user has seen the preview and approved it.
 - Do not modify `original/` or the source `2d-video.plugin`.
 
@@ -101,21 +102,21 @@ Don't ask about style yet. Defaults: language `ru`, speech language same as outp
 
 ## Stage 2: Install or check the studio
 Follow `references/install.md`, with the Sharrowkin rule that nothing is installed without permission:
-1. The studio is already installed at `2d-video/` (verbatim kit copy). If it is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` — never overwrite an existing `projects/`.
-2. Run `python tools/verify_kit.py` (must report 29/29) and `python tools/doctor.py` inside `2d-video/`.
-3. Report every MISSING line to the user in one short list with the exact fix command, and **wait for permission** before running `npm install`, `npx playwright install chromium` or `pip install numpy scipy faster-whisper`.
-4. Run the example self-test only when the dependencies are present: `node render.mjs --project examples/reaction-time --sheet --scale 0.3`.
+1. The studio is already installed at `2d-video/` (original kit + the three intentional patches in `patches/`). If it is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` — never overwrite an existing `projects/`.
+2. Run `cd 2d-video; python tools/verify_kit.py` (must report 29/29, including 3 intentional patches) and, from the workspace root, `python tools/2dvideo.py doctor`.
+3. Report every MISSING line to the user in one short list with the exact fix command, and **wait for permission** before running `npm install`, `npx playwright install chromium` or `pip install -r requirements.txt`.
+4. Run the example self-test only when the dependencies are present: `cd 2d-video; node render.mjs --project examples/reaction-time --sheet --scale 0.3`.
 
 ## Stage 3: Project + timeline
-Run inside `2d-video/`. On Windows use `python` (not `python3`).
+Run the `tools/2dvideo.py` commands from the workspace root. On Windows use `python` (not `python3`); the runner selects `.venv-whisper`.
 ```bash
-python tools/new_project.py --name <slug> --lang <language> --speech-lang <speech-language> --voice "<voiceover path>" [--script "<script path>"] --aspect 16:9 --resolution 1080p --title "<title>" [--captions]
+python tools/2dvideo.py init --name <slug> --lang <language> --speech-lang <speech-language> --voice "<voiceover path>" [--script "<script path>"] --aspect 16:9 --resolution 1080p --title "<title>" [--captions]
 ```
-- Timestamped script: `python tools/parse_script.py --project projects/<slug> --script projects/<slug>/input/script.<ext>`
-- Plain script: `python tools/transcribe.py --project projects/<slug> --script projects/<slug>/input/script.txt --lang <speech-language> --model small`. The match must be ≥ 90%; if it's lower, tell the user the script and audio differ.
-- No script: `python tools/transcribe.py --project projects/<slug> --lang <speech-language> --model small` (`base` on slow machines, `large-v3` for hard audio). The first run downloads the model — ask first.
+- Timestamped script: `python tools/2dvideo.py timeline --project projects/<slug> --mode timestamps --script projects/<slug>/input/script.<ext>`
+- Plain script: `python tools/2dvideo.py timeline --project projects/<slug> --mode plain --script projects/<slug>/input/script.txt --lang <speech-language> --model <local-model-dir>`. The match must be ≥ 90%; if it's lower, tell the user the script and audio differ.
+- No script: `python tools/2dvideo.py timeline --project projects/<slug> --mode whisper --lang <speech-language> --model <local-model-dir>`. The model must exist locally; ask before downloading one.
 
-Check `timeline/transcript.txt` (its end should be near the voiceover length), then run `python tools/beats.py --project projects/<slug>` to get the beat sheet and a draft `story/shots.json`.
+Check `timeline/transcript.txt` (its end should be near the voiceover length), then run `python tools/2dvideo.py beats --project projects/<slug>` to get the beat sheet and a draft `story/shots.json`.
 
 ## Stage 4: Story breakdown
 Read `references/style-bible.md` and `references/story-breakdown.md`. Write `story/bible.md` (logline, cast with one signature colour each, locations with moods and key lights, motifs, music plan). Write `scenes/cast.js`. Rewrite `story/shots.json`: contiguous shots, cut on phrase boundaries 0.1–0.2 s early, a median of 2–3.5 s, an establishing shot per new location, and a concrete `scene` description for each. Send the user a 5–10 line plan summary and continue unless they object.
@@ -144,13 +145,13 @@ Non-negotiables from the style bible:
 - No `Math.random`/`Date.now`.
 
 ## Stage 7: Sound
-Read `references/sound-design.md`. Fill `story/shots.json` → `music` (contiguous mood sections) and add per-shot `sfx` cues and `amb` beds. Mixing happens after the final render (Stage 8), or run `python audio/mix.py --project projects/<slug>` now to audition `build/mix.wav`.
+Read `references/sound-design.md`. Fill `story/shots.json` → `music` (contiguous mood sections) and add per-shot `sfx` cues and `amb` beds. Mixing happens after the final render (Stage 8), or run `python tools/2dvideo.py mix --project projects/<slug>` now to audition `build/mix.wav`.
 
 ## Stage 8: Render and deliver
 Read `references/render-qc.md`.
 1. Preview: `node render.mjs --project projects/<slug> --from 0 --to 30 --scale 0.5`. Show the user the preview or a contact sheet before the long render.
 2. Final: `node render.mjs --project projects/<slug>`. Run it with `run_background` for long videos and poll the log with `process_output`. The log prints fps and ETA, so share the estimate.
-3. Run `python audio/mix.py --project projects/<slug>`, which generates music and SFX, ducks the music under the voice, normalises to −14 LUFS and muxes `out/<title>.mp4`.
+3. Run `python tools/2dvideo.py mix --project projects/<slug>`, which generates music and SFX, ducks the music under the voice, normalises to −14 LUFS and muxes `out/<title>.mp4`.
 4. QC the final file: duration matches, audio is present, and a 1-frame-per-10-s contact sheet looks right. Deliver the MP4 (give the path), then give the location in plain words and one line on what to tweak next if needed.
 
 ## Defaults and judgement calls

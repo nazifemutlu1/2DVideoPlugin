@@ -21,6 +21,7 @@ Work inside `2d-video/` on the active project (`projects/<slug>`; if several exi
 - The grid is a PNG: open `build/styles/style_grid.png` with `view_image` and check it before showing the user.
 - Ask the user to choose with `ask_user` (2–4 options, one recommended).
 - `python`, not `python3`; quote paths with spaces. Never install packages without permission.
+- **Python convention:** use `python tools/2dvideo.py` from the workspace root or `.venv-whisper\Scripts\python.exe` inside `2d-video/`; host Python 3.14 lacks numpy/scipy.
 - CLI runner equivalent: `python tools/2dvideo.py sheet --project projects/<slug>` for the per-shot sheet; the style grid itself is `node render.mjs --styles …` (see below).
 
 ## Language policy

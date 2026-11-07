@@ -21,6 +21,7 @@ This skill covers stages 1–4 of the 2D Video pipeline. Shared references live 
 - There are no slash commands: the user asks for this stage in words, or names the skill `new-video`.
 - `AskUserQuestion` → `ask_user` (2–4 options, one recommended).
 - Shell → `run_command` (cmd.exe; `python`, not `python3`; quote paths with spaces).
+- **Python convention:** use `python tools/2dvideo.py` from the workspace root; it selects `.venv-whisper`. Bare host `python` lacks numpy/scipy.
 - **Never install packages or download a Whisper model without explicit permission.**
 - Never edit `original/` or `2d-video.plugin`.
 - The CLI runner `python tools/2dvideo.py` (workspace root) wraps these stages: `init`, `timeline`, `beats`, `status`.
@@ -47,17 +48,18 @@ Ask once (`ask_user` when available), skipping anything the user already said:
 Defaults: language `ru`, speech language same as output, 16:9, 1080p, generated music + SFX.
 
 ## 2. Studio
-The studio is at `2d-video/` (verbatim copy of the plugin kit). Run `python tools/doctor.py` inside it and report anything MISSING with its fix command — but **ask before installing**. If `2d-video/render.mjs` is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` and follow `references/install.md`.
+The studio is at `2d-video/` (original kit + 3 intentional patches). From the workspace root run `python tools/2dvideo.py doctor` and, inside `2d-video/`, `python tools/verify_kit.py` (29/29). Report anything MISSING with its fix command — but **ask before installing**. If `2d-video/render.mjs` is missing, copy `original/skills/make-2d-video/kit/` to `2d-video/` and follow `references/install.md`.
 
-## 3. Project and timestamps (inside `2d-video/`)
+## 3. Project and timestamps
+Run the CLI from the workspace root:
 ```bash
-python tools/new_project.py --name <slug> --lang <language> --speech-lang <speech-language> --voice "<voiceover>" [--script "<script>"] --aspect <16:9|9:16> --resolution <res> --title "<title>" [--captions]
+python tools/2dvideo.py init --name <slug> --lang <language> --speech-lang <speech-language> --voice "<voiceover>" [--script "<script>"] --aspect <16:9|9:16> --resolution <res> --title "<title>" [--captions]
 ```
-- **Timestamped script** → `python tools/parse_script.py --project projects/<slug> --script projects/<slug>/input/script.<ext>`. It accepts SRT, VTT, JSON (`[{start,end,text}]`, `{segments}`, `{words}`) and TXT lines like `[00:12.5] text`, `00:12 - 00:15 text` or `00:00:12,500 --> 00:00:15,000 text`. If the parser reports no timestamps, fall back to the plain-script route.
-- **Plain script** → `python tools/transcribe.py --project projects/<slug> --script projects/<slug>/input/script.txt --lang <speech-language> --model small`. It keeps the script's exact words with Whisper timing. Require ≥ 90% match; if lower, tell the user the script and audio differ.
-- **No script** → `python tools/transcribe.py --project projects/<slug> --lang <speech-language> --model small` (`base` for speed, `large-v3` for difficult audio). The first run downloads the model — ask first.
+- **Timestamped script** → `python tools/2dvideo.py timeline --project projects/<slug> --mode timestamps --script projects/<slug>/input/script.<ext>`. It accepts SRT, VTT, JSON (`[{start,end,text}]`, `{segments}`, `{words}`) and TXT lines like `[00:12.5] text`, `00:12 - 00:15 text` or `00:00:12,500 --> 00:00:15,000 text`. If the parser reports no timestamps, fall back to the plain-script route.
+- **Plain script** → `python tools/2dvideo.py timeline --project projects/<slug> --mode plain --script projects/<slug>/input/script.txt --lang <speech-language> --model <local-model-dir>`. It keeps the script's exact words with Whisper timing. Require ≥ 90% match; if lower, tell the user the script and audio differ.
+- **No script** → `python tools/2dvideo.py timeline --project projects/<slug> --mode whisper --lang <speech-language> --model <local-model-dir>`. The model must exist locally; ask before downloading one.
 
-Open `timeline/transcript.txt` and confirm it reads correctly and ends near the voiceover length. Then run `python tools/beats.py --project projects/<slug>` (add `--force` to overwrite an existing shots.json).
+Open `timeline/transcript.txt` and confirm it reads correctly and ends near the voiceover length. Then run `python tools/2dvideo.py beats --project projects/<slug>` (add `--force` to overwrite an existing shots.json).
 
 ## 4. Story breakdown
 Read `.sharrowkin/skills/make-2d-video/references/style-bible.md` and `references/story-breakdown.md` fully, then:

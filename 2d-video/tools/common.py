@@ -1,6 +1,5 @@
 """tools/common.py — shared helpers (ffmpeg decode, json io, time formatting)."""
 import json, os, re, subprocess, sys
-import numpy as np
 
 
 def run(cmd):
@@ -17,6 +16,7 @@ def probe_duration(path):
 
 def load_audio(path, sr=16000, mono=True):
     """Decode any audio/video file with ffmpeg into float32 numpy (mono: shape [n], stereo: [n, 2])."""
+    import numpy as np  # lazy: non-audio commands (--help, beats, parse_script) must work without it
     ch = 1 if mono else 2
     p = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-f", "f32le", "-acodec", "pcm_f32le", "-ac", str(ch), "-ar", str(sr), "-"],
                        capture_output=True)

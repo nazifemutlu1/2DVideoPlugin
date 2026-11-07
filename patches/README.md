@@ -1,6 +1,6 @@
 # Patches: намеренные отличия рабочей студии от оригинала
 
-Эти патчи отделяют три осознанных изменения от «оригинального kit». Они нужны, чтобы `verify_kit` не заставлял blindly копировать оригиналы и не сносил security/CSP/offline-поведение.
+Эти патчи отделяют осознанные изменения от «оригинального kit». Они нужны, чтобы `verify_kit` не заставлял blindly копировать оригиналы и не сносил security/CSP/offline-поведение.
 
 Применять **из каталога `2d-video/`**. На Windows с глобальным `core.autocrlf=true` обязательно отключать autocrlf, иначе `git apply` запишет CRLF и хеши не совпадут:
 
@@ -8,6 +8,7 @@
 git -c core.autocrlf=false apply ..\patches\player-csp.patch
 git -c core.autocrlf=false apply ..\patches\transcribe-offline.patch
 git -c core.autocrlf=false apply ..\patches\render-http-security.patch
+git -c core.autocrlf=false apply ..\patches\runtime-python.patch
 ```
 
 Проверка обратимости:
@@ -16,6 +17,7 @@ git -c core.autocrlf=false apply ..\patches\render-http-security.patch
 git -c core.autocrlf=false apply --reverse --check ..\patches\player-csp.patch
 git -c core.autocrlf=false apply --reverse --check ..\patches\transcribe-offline.patch
 git -c core.autocrlf=false apply --reverse --check ..\patches\render-http-security.patch
+git -c core.autocrlf=false apply --reverse --check ..\patches\runtime-python.patch
 ```
 
 ## Состав
@@ -25,6 +27,7 @@ git -c core.autocrlf=false apply --reverse --check ..\patches\render-http-securi
 | `player-csp.patch` | `player.html` | CSP: запрет внешних скриптов/фреймов, разрешён import map по SHA-256 | `8a5a4a2bf897dd56d355e5c4466af5d4ea4afd554bb57f62c447affcf301d2ce` |
 | `transcribe-offline.patch` | `tools/transcribe.py` | локальная CTranslate2-модель, без автоскачивания; `--model` обязателен | `7bce5421d5c977f37c41e9f7ce60407c05434fd1f9d6e19b608e3c8d6f1dfde4` |
 | `render-http-security.patch` | `render.mjs` | T1.2C: только `127.0.0.1`, allowlist, realpath containment, route guard, GET/HEAD | `e94f1508b5823a5ddabd9cfcc8e1ab3e202b7e33c7e2e3c371b4d23670a9d605` |
+| `runtime-python.patch` | `tools/common.py`, `tools/doctor.py` | R2: единый Python/venv, ленивый numpy, явный выбранный интерпретатор в doctor | `common` `719d9452…`, `doctor` `d6b56eb3…` |
 
 Исходные хеши (для сверки):
 
@@ -39,4 +42,4 @@ git -c core.autocrlf=false apply --reverse --check ..\patches\render-http-securi
 - `render-http-security.patch` — **только `render.mjs`**. CSP вынесен в отдельный `player-csp.patch`, чтобы патчи применялись независимо.
 - Исходный внешний патч T1.2C содержал и `player.html`, и `render.mjs`; здесь он разделён.
 - Не запускать `backups/t1.2f-*/restore.ps1` для «починки» тестов: он вернёт незащищённые `render.mjs`/`player.html`.
-- `verify_kit` должен считать эти три файла ожидаемо изменёнными (R1), а не требовать копирования оригинала.
+- `verify_kit` должен считать эти пять файлов ожидаемо изменёнными (R1/R2), а не требовать копирования оригинала.

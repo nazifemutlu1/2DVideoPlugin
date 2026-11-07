@@ -1,6 +1,6 @@
 # ROADMAP: 2DVideoPlugin → production-ready
 
-Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0 и R1 выполнены**, следующий — R2. Этот файл — источник истины по порядку работ.
+Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0, R1 и R2 выполнены**, следующий — R3. Этот файл — источник истины по порядку работ.
 
 ## Правила выполнения
 
@@ -33,7 +33,7 @@
 - [x] R0.1 Инициализировать git, добавить `.gitignore`, зафиксировать baseline-коммит.
 - [x] R0.2 Добавить в `.gitignore`: `node_modules/`, `.venv-whisper/`, `projects/*/build/`, `projects/*/out/`, `__pycache__/`, `*.pyc`, `debug.log`, `%SystemDrive%/`, `.qoder/`, `.whisper-e2e-test/`, `.sharrowkin/checkpoints/`, `.sharrowkin/brain.db`, `.sharrowkin/skills.sqlite`.
 - [x] R0.3 Зафиксировать текущие версии: Node 24.21.0, npm 11.19.0, venv Python 3.12.10, FFmpeg 9.0.2, Playwright 1.56.0, Chromium 1194, npm-пакеты, Python-пакеты, Whisper small.en.
-- [x] R0.4 Создать `patches/` и перенести туда три намеренных изменения: CSP, T1.2C security, offline transcribe. Приложить `patches/README.md` с причиной и способом применения.
+- [x] R0.4 Создать `patches/` и перенести туда три намеренных изменения: CSP, T1.2C security, offline transcribe. Приложить `patches/README.md` с причиной и способом применения. (R2 добавляет `runtime-python.patch` для common/doctor.)
 - [x] R0.5 Проверить, что `AUDIT.md` и `ROADMAP.md` не попадают в runtime-артефакт.
 
 **DoD:** есть откат, baseline зафиксирован, патчи не потеряны, рабочая копия не изменилась функционально.
@@ -73,14 +73,24 @@
 
 **Цель:** никаких «в одном терминале работает, в другом нет».
 
-- [ ] R2.1 Зафиксировать `requirements.txt` из `.venv-whisper`: `numpy`, `scipy`, `faster-whisper` (и при необходимости `ctranslate2`), с версиями.
-- [ ] R2.2 В `tools/2dvideo.py` сделать единый resolver: `--python`/`PYTHON` → `.venv-whisper` → системный Python; печатать выбранный интерпретатор в `doctor`.
-- [ ] R2.3 `doctor.py` должен проверять тот же интерпретатор, который будет использовать runner; либо принимать `--python`.
-- [ ] R2.4 Сделать импорт `numpy` ленивым в `tools/common.py` для команд, которым он не нужен (`--help`, `beats` без аудио и т.п.), либо явно требовать venv с понятным сообщением.
-- [ ] R2.5 Добавить bootstrap-скрипт (`bootstrap.ps1`/`bootstrap.sh`) **без автозапуска установки**: только проверка и печать команд.
-- [ ] R2.6 Обновить `README.md`, `MIGRATION.md`, `.sharrowkin/skills/**`: все команды — через `python tools/2dvideo.py` или явный venv.
+- [x] R2.1 Зафиксировать `requirements.txt` из `.venv-whisper`: `numpy`, `scipy`, `faster-whisper` (и при необходимости `ctranslate2`), с версиями.
+- [x] R2.2 В `tools/2dvideo.py` сделать единый resolver: `--python`/`PYTHON` → `.venv-whisper` → системный Python; печатать выбранный интерпретатор в `doctor`.
+- [x] R2.3 `doctor.py` должен проверять тот же интерпретатор, который будет использовать runner; либо принимать `--python`.
+- [x] R2.4 Сделать импорт `numpy` ленивым в `tools/common.py` для команд, которым он не нужен (`--help`, `beats` без аудио и т.п.), либо явно требовать venv с понятным сообщением.
+- [x] R2.5 Добавить bootstrap-скрипт (`bootstrap.ps1`/`bootstrap.sh`) **без автозапуска установки**: только проверка и печать команд.
+- [x] R2.6 Обновить `README.md`, `MIGRATION.md`, `.sharrowkin/skills/**`: все команды — через `python tools/2dvideo.py` или явный venv.
 
 **DoD:** `python tools/2dvideo.py doctor` и прямой запуск из документации дают одинаковый результат; `python tools/new_project.py --help` либо работает, либо печатает точную команду с venv, а не `ModuleNotFoundError`.
+
+**Evidence (2026-11-07):**
+- `requirements.txt`: numpy 2.5.4, scipy 1.18.1, faster-whisper 1.2.1, ctranslate2 4.8.3.
+- `tools/2dvideo.py` resolver: `--python` → `PYTHON`/`PYTHON_EXE` → `.venv-whisper` → host; `doctor` печатает выбранный путь.
+- `doctor.py` при вызове через runner проверяет venv; прямой запуск печатает свой интерпретатор.
+- `tools/common.py` импортирует numpy только внутри `load_audio`; `python tools/new_project.py --help` и `beats.py --help` → exit 0 без numpy.
+- `bootstrap.ps1` и `bootstrap.sh` только проверяют и печатают команды; Chromium определяется корректно.
+- `README.md`, `MIGRATION.md` и 5 skills обновлены на `python tools/2dvideo.py` / явный venv.
+- `npm test` → PASS 4/4; `verify_kit` 29/29 (5 intentional patches); CLI `mix` → exit 0.
+
 
 ---
 
@@ -255,7 +265,7 @@
 |---|---|---|---|---|
 | R0 | P0 | Страховка, git, патчи | — | [x] |
 | R1 | P0 | Зелёный gate | R0 | [x] |
-| R2 | P0 | Python/venv | R0 | [ ] |
+| R2 | P0 | Python/venv | R0 | [x] |
 | R3 | P0 | CLI mix | R2 | [ ] |
 | R4 | P0 | Whisper RU | R2 | [ ] |
 | R5 | P0/P1 | Skills/runtime | R2 | [ ] |

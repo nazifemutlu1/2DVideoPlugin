@@ -19,7 +19,8 @@ Work inside `2d-video/` on the active project. Read `.sharrowkin/skills/make-2d-
 ## Sharrowkin runtime
 
 - `python`, not `python3`; quote paths with spaces.
-- The mix needs `numpy` and `scipy`. If they are missing, `audio/mix.py` fails on import — report it and **ask before** `pip install numpy scipy`.
+- **Python convention:** use `python tools/2dvideo.py mix ...` from the workspace root for the mix. For standalone music/SFX auditions use `.venv-whisper\Scripts\python.exe audio/...` inside `2d-video/`; the host Python 3.14 lacks numpy/scipy.
+- The mix needs `numpy` and `scipy` in the selected interpreter. If they are missing, report it and **ask before** installing from `requirements.txt`.
 - Audition files (`build/test_tension.wav`, `build/sfx_demo/`) are local WAVs: give the user the path; do not claim you listened to them.
 - CLI runner equivalent: `python tools/2dvideo.py mix --project projects/<slug>`.
 
@@ -35,16 +36,16 @@ Work inside `2d-video/` on the active project. Read `.sharrowkin/skills/make-2d-
 ## 1. Music plan
 - Read `story/bible.md` and the shot list, then write `story/shots.json` → `"music"`: contiguous sections `{start, end, mood, intensity}` that change at story turns (title card, discovery, danger, climax, resolution, explanation), typically every 30–90 s.
 - Moods: `mystery, tension, action, wonder, hopeful, sad, triumph, playful, calm, dark, epic`. Intensity 0–1 adds pulse, arpeggios and drums.
-- Audition a mood: `python audio/music.py --mood tension --intensity 0.7 --dur 20 --out build/test_tension.wav`, and give the user the WAV path if they want to listen.
+- Audition a mood (inside `2d-video/`): `.venv-whisper\Scripts\python.exe audio/music.py --mood tension --intensity 0.7 --dur 20 --out build/test_tension.wav` (or the absolute venv path from the workspace root), and give the user the WAV path if they want to listen.
 - **User's own track:** copy it into `projects/<slug>/input/` and set `config.json` → `"music": {"enabled": true, "file": "input/<name>.mp3", "gainDb": -17}`. It loops or trims, and the end fades.
 - **No music:** `"music": {"enabled": false}`.
 
 ## 2. SFX and ambience
 - Per shot: `"sfx": [{"at": <s from shot start>, "name": "<effect>", "gain": -8}]` (optional `dur`, `seed`, `pitch`; `name` may be a path to the user's own WAV/MP3 inside the project). Per shot ambience: `"amb": {"name": "rain|wind|city|roomtone|murmur|hum", "gain": -20}`.
-- List the library with `python audio/sfx.py --list`, or audition it with `python audio/sfx.py --demo build/sfx_demo`.
+- List the library with `.venv-whisper\Scripts\python.exe audio/sfx.py --list`, or audition it with `.venv-whisper\Scripts\python.exe audio/sfx.py --demo build/sfx_demo` (inside `2d-video/`).
 - Place cues on actions and graphics: `whoosh`/`swish` on whips and fast moves, `pop`/`blip` when graphics appear, `counter` under ticking numbers, `riser` then `impact`/`stinger` on reveals, `slowmo`/`freeze` for time effects, `hit`/`kick`/`footstep` on contact. Never stack more than ~2 cues at the same instant.
 
 ## 3. Mix and mux
-Run `python audio/mix.py --project projects/<slug>`. It ducks the music −9 dB and ambience −5 dB under the voice, normalises to `config.loudness` (−14 LUFS default), writes `build/mix.wav`, and, when `build/video_silent.mp4` exists, writes `out/<title>.mp4`.
+Run `python tools/2dvideo.py mix --project projects/<slug>` from the workspace root. It ducks the music −9 dB and ambience −5 dB under the voice, normalises to `config.loudness` (−14 LUFS default), writes `build/mix.wav`, and, when `build/video_silent.mp4` exists, writes `out/<title>.mp4`.
 - Levels: `config.music.gainDb` (default −17 relative to the voice) and `config.sfx.gainDb` (default −6). Change them by 2–3 dB per iteration.
 - QC: `ffmpeg -i out/<file>.mp4 -af ebur128=framelog=quiet -f null -` (integrated loudness about −14 LUFS) and check that the duration matches the video.

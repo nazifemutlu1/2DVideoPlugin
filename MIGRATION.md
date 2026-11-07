@@ -1,5 +1,7 @@
 # Отчёт: перенос `2d-video.plugin` (Claude) → Sharrowkin / DeepSeek Flash
 
+> **Актуальное состояние на 2026-11-07:** документ ниже — исторический отчёт о переносе от 2026-10-24. После аудита выполнены R0 (git, baseline, `patches/`) и R1 (зелёный `npm test`, `verify_kit` 29/29). Свежие факты — в [README.md](README.md), [ENVIRONMENT.md](ENVIRONMENT.md), [AUDIT.md](AUDIT.md) и [ROADMAP.md](ROADMAP.md).
+
 Дата: 2026-10-24. Исходный архив не изменялся, `F:\AI\ViralFactory` не затрагивался, рендер видео не запускался, ничего не устанавливалось.
 
 ## 1. Созданные файлы
@@ -7,7 +9,7 @@
 | Путь | Назначение |
 |---|---|
 | `original/` | распакованный оригинал, 43 файла, 1:1 (CRC архива OK, путей с `..` нет) |
-| `2d-video/` | рабочая студия — побайтовая копия `original/skills/make-2d-video/kit/` (`verify_kit.py` → 29/29) |
+| `2d-video/` | рабочая студия: оригинальный kit + намеренные патчи (CSP, T1.2C security, offline transcribe, runtime-python), см. `patches/` |
 | `.sharrowkin/skills/make-2d-video/SKILL.md` | главный skill: весь пайплайн, 8 стадий, оригинальные правила |
 | `.sharrowkin/skills/make-2d-video/references/` | 6 файлов references, `diff -r` с оригиналом — идентичны |
 | `.sharrowkin/skills/new-video/SKILL.md` | стадии 1–4 (интейк, студия, тайминги, раскадровка) |
@@ -57,33 +59,38 @@
 
 ## 5. Зависимости
 
-**Есть:** Node.js v24.21.0, npm 11.19.0, Python 3.14.7, FFmpeg/ffprobe 9.0.2, 24 потока CPU, NVIDIA GPU.
+**Фактически установлено (2026-11-07):** Node.js v24.21.0, npm 11.19.0, Python 3.12.10 в `.venv-whisper`, FFmpeg/ffprobe 9.0.2, Playwright 1.56.0 + Chromium 1194, 24 потока CPU, NVIDIA RTX 4080 SUPER (Whisper на CPU, `torch` не установлен).
 
-**Отсутствует (ничего не устанавливалось):**
-
-| Чего нет | Кому нужно | Установка (не выполнялась) |
+| Компонент | Где | Версия / примечание |
 |---|---|---|
-| npm: `three`, `playwright`, `@fontsource/{fredoka,nunito,playfair-display}` | `render.mjs` (любой рендер кадра) | `cd 2d-video && npm install` |
-| Chromium для Playwright | `render.mjs` | `cd 2d-video && npx playwright install chromium` |
-| python: `numpy` | **все** стадии: `tools/common.py` импортирует numpy на уровне модуля, поэтому без него падает даже `new_project.py` | `python -m pip install numpy` |
-| python: `scipy` | `audio/mix.py` | `python -m pip install scipy` |
-| python: `faster-whisper` | `tools/transcribe.py` (только если нет таймкодов) | `python -m pip install faster-whisper` + модель (~150–500 МБ при первом запуске) |
+| npm `three`, `playwright`, `@fontsource/*` | `2d-video/node_modules` | 43.6 MB, `npm ls` exit 0 |
+| Chromium для Playwright | `%LOCALAPPDATA%\ms-playwright\chromium-1194` | есть |
+| `numpy` | `.venv-whisper` | 2.5.4 |
+| `scipy` | `.venv-whisper` | 1.18.1 |
+| `faster-whisper` | `.venv-whisper` | 1.2.1, `ctranslate2` 4.8.3 |
+| Whisper-модель | HF cache | `small.en`, English-only, 486 MB |
+
+Системный Python 3.14 по-прежнему не содержит этих пакетов; прямой `python tools/*.py` для аудио/Whisper не использовать. Канонический вход — `python tools/2dvideo.py` или `.venv-whisper\Scripts\python.exe`.
 
 ## 6. Выполненные проверки
 
 | Проверка | Результат |
 |---|---|
 | Целостность архива (CRC, 43 записи, безопасные пути) | PASS |
-| `verify_kit.py` в `2d-video/` | PASS 29/29 |
-| `diff -r` references (оригинал ↔ skill) | PASS, идентичны |
-| Синтаксис Python (25 файлов) | PASS 25/25 |
-| Синтаксис ESM (15 файлов) | PASS 15/15 |
-| `doctor.py` | отчёт получен: 5 позиций MISSING (см. §5) |
-| Раннер: `init` → `timeline` (SRT) → `beats` → `status` на `_smoke` | PASS (8.0 с, 13 слов, 3 предложения, 5 битов, 9.44 с) |
-| Раннер: `sheet` без `node_modules` | PASS — корректный отказ, код 2, с командой установки |
-| Рендер видео | **не запускался** (по условию задачи) |
+| `verify_kit.py` в `2d-video/` | PASS 29/29 (3 намеренных патча, см. `patches/`) |
+| Синтаксис Python | PASS 27/27 |
+| Синтаксис ESM | PASS 15/15 |
+| `npm test` | PASS 4/4, exit 0 |
+| `doctor.py` через runner | PASS: ffmpeg, Node, npm, Chromium, numpy, scipy, faster-whisper |
+| Раннер: `init` → `timeline` (SRT) → `beats` → `status` | PASS (13 слов, 3 предложения, 5 битов) |
+| Раннер: Whisper EN | PASS (14 слов, 3 предложения) |
+| Рендер: эталонный sheet | PASS: 14 кадров + contact sheet |
+| Рендер: 9:16 sheet | PASS: 5 кадров 540×960 |
+| Рендер: preview | PASS: 48 кадров, H.264, 2.000 s |
+| Финальный MP4 | PASS: H.264 + AAC, 9.893 s, decode OK, ≈ −14.5 LUFS |
+| CLI `mix` | PASS после R2 (проверка зависимостей в выбранном Python) |
 
-Замечание: сквозной прогон `init/timeline/beats` выполнялся с временной правкой `tools/common.py` (ленивый импорт numpy). Правка **откачена**, студия снова побайтово равна оригиналу (29/29), артефакты `_smoke` остались. Без `numpy` первый этап не запустится — это поведение оригинального кита, а не дефект переноса.
+Замечание: ленивый импорт numpy теперь **внедрён** в `tools/common.py` (R2); `new_project.py --help` и `beats.py --help` работают без numpy. Для `audio/mix.py` и Whisper всё равно нужен venv.
 
 ## 7. Ограничения
 
@@ -97,24 +104,27 @@
 
 ## 8. Первый тестовый запуск — один конкретный способ
 
-Предусловие (нужно ваше разрешение, ~1 минута): `numpy` + npm-пакеты + Chromium. Без них не работает ни создание проекта, ни рендер кадра.
+Предусловие: зависимости уже установлены (см. §5). Проверить и, при необходимости, установить с разрешения:
 
-```bash
-cd F:\AI\2DVideoPlugin\2d-video
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
+python -m venv .venv-whisper
+.\.venv-whisper\Scripts\python.exe -m pip install -r requirements.txt
+cd 2d-video
 npm install
 npx playwright install chromium
-python -m pip install numpy scipy
 ```
 
 Затем в чате Sharrowkin одной фразой:
 
 > Сделай 2D-видео из озвучки `C:\audio\voice.mp3`, 16:9, 1080p, русский, стиль dusk. Сначала покажи раскадровку и контактный лист, полный рендер — после моего подтверждения.
 
-Что произойдёт: skill `make-2d-video` → `doctor` → `new_project` → тайминги (Whisper или ваш SRT) → `beats` → раскадровка и `bible.md` → сетка стилей → сцены батчами с QC по контактным листам → превью 30 с → полный рендер в фоне → `audio/mix.py` → `out/<title>.mp4`.
+Что произойдёт: skill `make-2d-video` → `doctor` → `init` → тайминги (Whisper или SRT) → `beats` → раскадровка и `bible.md` → сетка стилей → сцены батчами с QC по контактным листам → превью 30 с → полный рендер в фоне → `mix` → `out/<title>.mp4`.
 
 Тот же путь без диалога:
 
-```bash
+```powershell
+python tools/2dvideo.py doctor
 python tools/2dvideo.py init --name test --voice "C:/audio/voice.mp3" --title "Тест" --lang ru
 python tools/2dvideo.py timeline --project projects/test
 python tools/2dvideo.py beats --project projects/test

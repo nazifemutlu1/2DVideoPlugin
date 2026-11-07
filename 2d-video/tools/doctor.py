@@ -41,6 +41,8 @@ for mod, pipname in [("numpy", "numpy"), ("scipy", "scipy"), ("faster_whisper", 
 ok(f"python >= 3.9", sys.version_info >= (3, 9), sys.version.split()[0], "install Python 3.10+ from https://python.org")
 
 print("\n2D Video — environment check\n")
+print(f"  Python: {sys.executable}")
+print(f"  Studio: {ROOT}\n")
 for a, b in rows: print(f"  {a:45s} {b}")
 gpu = "unknown"
 try: gpu = "NVIDIA GPU found" if shutil.which("nvidia-smi") else "no NVIDIA GPU (CPU render / transcription — slower, works fine)"
@@ -55,4 +57,4 @@ if fixes:
                 print(f"\n>>> {f}"); subprocess.run(f, shell=True, cwd=ROOT)
         print("\nRe-run: python tools/doctor.py")
 else:
-    print("\nAll good. Whisper downloads its model (~150-500 MB) the first time tools/transcribe.py runs.")
+    print("\nAll good. Whisper uses a local CTranslate2 model; see transcribe.py --model.")

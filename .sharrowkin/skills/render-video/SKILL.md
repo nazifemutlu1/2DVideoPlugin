@@ -21,6 +21,7 @@ Work inside `2d-video/` on the active project (`projects/<slug>`; if several exi
 - Contact sheets and stills are PNG files: open them with `view_image` and judge them yourself before any long render.
 - Long renders: `run_background` (never `nohup`, never `&`), then poll with `process_output`.
 - `python`, not `python3`. Quote paths with spaces.
+- **Python convention:** use `python tools/2dvideo.py` from the workspace root or `.venv-whisper\Scripts\python.exe` inside `2d-video/`; the host Python 3.14 lacks numpy/scipy.
 - **Never install packages without permission.** If `node_modules` is missing, `render.mjs` fails with `ERR_MODULE_NOT_FOUND` — report it and ask before `npm install` / `npx playwright install chromium`.
 - Do not start a full video render until the user has seen the preview and approved it.
 - CLI runner equivalents (workspace root): `python tools/2dvideo.py sheet|preview|render|mix --project projects/<slug>`.
@@ -50,4 +51,4 @@ Render `node render.mjs --project projects/<slug> --from 0 --to 30 --scale 0.5` 
 - Output: `build/video_silent.mp4`. The end of the log lists any shot errors. Fix them and re-render if there are any.
 
 ## 4. Sound, mux and deliver
-Make sure the music plan and SFX are set (see the `video-sound` skill), then run `python audio/mix.py --project projects/<slug>`, which writes `out/<title>.mp4`. QC: `ffprobe` duration ≈ `story/shots.json` duration, an audio stream is present, and a contact sheet of the final file (`ffmpeg -i out/<file>.mp4 -vf fps=1/10,scale=320:-1,tile=6x5 -frames:v 1 build/final_sheet.png`) looks right. Give the user the MP4 path and say in plain words where it was saved.
+Make sure the music plan and SFX are set (see the `video-sound` skill), then run `python tools/2dvideo.py mix --project projects/<slug>` from the workspace root, which writes `out/<title>.mp4`. QC: `ffprobe` duration ≈ `story/shots.json` duration, an audio stream is present, and a contact sheet of the final file (`ffmpeg -i out/<file>.mp4 -vf fps=1/10,scale=320:-1,tile=6x5 -frames:v 1 build/final_sheet.png`) looks right. Give the user the MP4 path and say in plain words where it was saved.

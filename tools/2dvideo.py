@@ -30,7 +30,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 STUDIO = ROOT / "2d-video"
 VENV_PY = ROOT / ".venv-whisper" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-PY = str(VENV_PY) if VENV_PY.is_file() else sys.executable
+
+
+def resolve_python(explicit: str | None = None) -> str:
+    """Choose one Python for every stage: --python, PYTHON, project venv, host."""
+    candidates = [explicit, os.environ.get("PYTHON"), os.environ.get("PYTHON_EXE"), str(VENV_PY), sys.executable]
+    for candidate in candidates:
+        if candidate and Path(candidate).expanduser().is_file():
+            return str(Path(candidate).expanduser().resolve())
+    return sys.executable
+
+
+PY = resolve_python()
 _WHISPER_SNAPSHOT = (
     Path.home()
     / ".cache/huggingface/hub/models--Systran--faster-whisper-small.en"
@@ -67,13 +78,14 @@ def require_node_modules() -> bool:
     return True
 
 
-def require_python_deps() -> bool:
-    import importlib.util
-
-    missing = [m for m in ("numpy", "scipy") if importlib.util.find_spec(m) is None]
-    if missing:
-        print("FAIL: не установлены python-пакеты: " + ", ".join(missing))
-        print(f'      установка (нужно разрешение пользователя): "{PY}" -m pip install numpy scipy')
+def require_python_deps(mods: tuple[str, ...] = ("numpy", "scipy")) -> bool:
+    """Check packages in the selected interpreter, not in the hosting Python."""
+    code = f"import importlib.util as u; print(','.join(m for m in {mods!r} if u.find_spec(m) is None))"
+    result = subprocess.run([PY, "-c", code], capture_output=True, text=True)
+    missing = [m for m in result.stdout.strip().split(",") if m]
+    if result.returncode != 0 or missing:
+        print("FAIL: не установлены python-пакеты: " + (", ".join(missing) or "не удалось проверить"))
+        print(f'      установка (нужно разрешение пользователя): "{PY}" -m pip install -r "{ROOT / "requirements.txt"}"')
         return False
     return True
 
@@ -139,8 +151,8 @@ def cmd_timeline(a) -> int:
             mode = "timestamps" if Path(script).suffix.lower() in (".srt", ".vtt", ".json") else "plain"
     if mode == "timestamps":
         return run([PY, "tools/parse_script.py", "--project", a.project, "--script", script])
-    if not VENV_PY.is_file():
-        return fail(f"не найдено окружение Whisper: {VENV_PY}")
+    if not Path(PY).is_file():
+        return fail(f"не найден Python-интерпретатор: {PY}")
     model = Path(a.model).expanduser() if a.model else WHISPER_MODEL
     if not model.is_dir():
         return fail(f"локальная модель Whisper не найдена: {model}")
@@ -249,6 +261,7 @@ def cmd_status(a) -> int:
 # ---------------------------------------------------------------- cli
 def main() -> int:
     ap = argparse.ArgumentParser(prog="2dvideo", description="Sharrowkin runner for the 2D Video studio")
+    ap.add_argument("--python", default=None, help="Python interpreter for all stages (default: PYTHON, .venv-whisper, host)")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("doctor", help="проверить окружение студии").set_defaults(func=cmd_doctor)
@@ -309,6 +322,11 @@ def main() -> int:
     p.set_defaults(func=cmd_status)
 
     a = ap.parse_args()
+    if a.python:
+        candidate = Path(a.python).expanduser()
+        if not candidate.is_file():
+            return fail(f"не найден Python-интерпретатор: {candidate}")
+        globals()["PY"] = str(candidate.resolve())
     return a.func(a)
 
 
