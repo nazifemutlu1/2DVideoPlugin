@@ -128,6 +128,7 @@
 - [ ] R4.4 Добавить фикстуру русской TTS-озвучки + SRT и прогнать `init → timeline → beats → status`; проверить, что words/sentences совпадают с SRT.
 - [ ] R4.5 Legacy-путь: Whisper только по явному локальному пути; `.en` + не-`en` — понятная ошибка; автоскачивания нет.
 - [ ] R4.6 Обновить README/install/SKILL: TTS + SRT — основной путь; Whisper — опциональный legacy.
+- [ ] R4.7 Разделить зависимости: core/TTS (`numpy`, `scipy`) и legacy Whisper (`faster-whisper`); `check_env`/`2dvideo check` не должны требовать `faster_whisper` для TTS-пути.
 
 **DoD:** русский TTS WAV + SRT проходит `init → timeline → beats` без Whisper, без модели и без сети; текст/тайминги совпадают с SRT; legacy-путь с Whisper не ломает этот сценарий.
 
