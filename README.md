@@ -110,6 +110,13 @@ npx playwright install chromium
 
 `bootstrap.ps1` только проверяет окружение и печатает команды; он ничего не устанавливает.
 
+Проверка HTTP-сервера рендера без полного рендера:
+
+```powershell
+cd 2d-video
+node render.mjs --project examples/reaction-time --self-check
+```
+
 ## Ограничения
 
 - `Ifverse/` — reserved future-integration workspace; сейчас не трогаем, не чистим и не включаем в artifact.

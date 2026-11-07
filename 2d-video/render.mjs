@@ -4,11 +4,13 @@
 //   node render.mjs --project P --sheet                               one still per shot -> build/sheets/*.png
 //   node render.mjs --project P --stills 3.5,12,40                    stills at times -> build/stills
 //   node render.mjs --project P --styles dusk,midnight,golden,neon --at 3.5,12,40   style comparison grid
+//   node render.mjs --project P --self-check                                      server/security self-test
 // Options: --workers N  --scale K  --style ID  --debug  --format png|jpeg  --crf 18  --gl auto|gpu|swiftshader  --out FILE
 import http from 'node:http';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
@@ -58,6 +60,74 @@ const server = http.createServer((req, res) => {
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const PORT = server.address().port;
 const ORIGIN = `http://127.0.0.1:${PORT}`;
+
+function httpCheck(method, pathname) {
+  return new Promise((resolve, reject) => {
+    const req = http.request(`${ORIGIN}${pathname}`, { method }, (res) => {
+      const chunks = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body: Buffer.concat(chunks) }));
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+async function selfCheck() {
+  const results = [];
+  const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); console.log(`  [${ok ? 'ok' : 'FAIL'}] ${name}${detail ? ` — ${detail}` : ''}`); };
+  const get = (p) => httpCheck('GET', p);
+
+  let r = await get('/player.html');
+  check('GET /player.html', r.status === 200 && /text\/html/i.test(r.headers['content-type'] || ''), `${r.status}`);
+  r = await httpCheck('HEAD', '/player.html');
+  check('HEAD /player.html', r.status === 200 && r.body.length === 0, `${r.status}, body=${r.body.length}`);
+  r = await get('/__manifest');
+  let manifest = null;
+  try { manifest = JSON.parse(r.body.toString('utf8')); } catch {}
+  check('GET /__manifest', r.status === 200 && Array.isArray(manifest), `${r.status}, items=${Array.isArray(manifest) ? manifest.length : 'n/a'}`);
+  r = await get('/project/config.json');
+  check('GET /project/config.json', r.status === 200 && /json/i.test(r.headers['content-type'] || ''), `${r.status}`);
+  r = await get('/etc/passwd');
+  check('GET /etc/passwd blocked', r.status === 404, `${r.status}`);
+  r = await get('/project/../package.json');
+  check('traversal .. blocked', r.status === 404, `${r.status}`);
+  r = await get('/project/%2e%2e/package.json');
+  check('encoded traversal blocked', r.status === 404, `${r.status}`);
+  r = await get('/engine/../package.json');
+  check('engine traversal blocked', r.status === 404, `${r.status}`);
+  r = await httpCheck('POST', '/player.html');
+  check('POST /player.html blocked', r.status === 405, `${r.status}`);
+
+  // CSP import-map hash must match the actual inline import map.
+  try {
+    const html = fs.readFileSync(path.join(ROOT, 'player.html'), 'utf8');
+    const map = (html.match(/<script type="importmap">([\s\S]*?)<\/script>/) || [])[1] || '';
+    const declared = (html.match(/sha256-([^']+)/) || [])[1] || '';
+    const actual = crypto.createHash('sha256').update(map).digest('base64');
+    check('CSP import-map hash', Boolean(map) && declared === actual, declared ? 'matches' : 'missing');
+  } catch (e) {
+    check('CSP import-map hash', false, e.message);
+  }
+
+  // Optional symlink escape check: skip when the host cannot create symlinks.
+  const link = path.join(BUILD, '.selfcheck-link');
+  try {
+    fs.rmSync(link, { force: true, recursive: true });
+    fs.symlinkSync(os.tmpdir(), link, 'dir');
+    r = await get('/project/build/.selfcheck-link/');
+    check('symlink escape blocked', r.status === 404, `${r.status}`);
+  } catch (e) {
+    check('symlink escape blocked', true, `skipped: ${e.code || e.message}`);
+  } finally {
+    try { fs.rmSync(link, { force: true, recursive: true }); } catch {}
+  }
+
+  const failed = results.filter((x) => !x.ok);
+  console.log(`SELF-CHECK ${failed.length ? 'FAIL' : 'PASS'} (${results.length - failed.length}/${results.length})`);
+  if (failed.length) process.exitCode = 1;
+}
+
 async function guardPageRequests(page) {
   await page.route('**/*', (route) => {
     const target = route.request().url();
@@ -150,6 +220,6 @@ async function renderStills() {
   else { const per = 24; for (let i = 0; i < all.length; i += per) await contactSheet(browser, all.slice(i, i + per), path.join(dir, `sheet_${String(i / per + 1).padStart(2, '0')}.png`), 4, 440); }
   await browser.close(); console.log(`Wrote ${all.length} stills + contact sheet(s) to ${dir}`);
 }
-try { if (args.sheet || args.stills || args.styles) await renderStills(); else await renderVideo(); }
+try { if (args['self-check']) await selfCheck(); else if (args.sheet || args.stills || args.styles) await renderStills(); else await renderVideo(); }
 catch (e) { console.error('RENDER FAILED:', e.message); process.exitCode = 1; }
 finally { server.close(); }

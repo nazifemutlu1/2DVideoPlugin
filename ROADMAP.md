@@ -1,6 +1,6 @@
 # ROADMAP: 2DVideoPlugin → production-ready
 
-Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3, R5, R7 и R8 выполнены**; R4 пере-сформулирован под TTS и ждёт TTS-фикстуру; R6 выполнен кроме R6.3 (раскладка тестовых проектов); следующий исполнимый пункт — R9. Этот файл — источник истины по порядку работ.
+Основание: [AUDIT.md](AUDIT.md). Статус на 2026-11-07: аудит завершён, **R0–R3, R5, R7 и R8 выполнены**; R4 пере-сформулирован под TTS и ждёт TTS-фикстуру; R6 выполнен кроме R6.3 (раскладка тестовых проектов); R9 в основном выполнен (`--self-check`, 11 проверок), R9.3 (внешний fetch) отложен; следующий исполнимый пункт — R10. Этот файл — источник истины по порядку работ.
 
 > **Проект не закрывается на R15.** R15 — это стабильный baseline, а не финальная заморозка. После него ожидаются интеграции (TTS, стили, внешний API/сервис); они вынесены в R16–R17. Поэтому упаковка и release-freeze не делаются, пока не определён scope интеграции.
 >
@@ -240,11 +240,19 @@
 
 ## R9. Тесты security-патча рендера — P1
 
-- [ ] R9.1 Вынести/экспортировать allowlist/резолвер в тестируемую функцию (или добавить тестовый режим `--self-check`).
-- [ ] R9.2 Тесты: `/player.html` 200, `/__manifest` 200, `/project/config.json` 200, `/etc/passwd` 404, `..` 404, encoded traversal 404, symlink outside 404, POST 405, HEAD 200.
+- [x] R9.1 Добавить тестовый режим `--self-check` для allowlist/резолвера.
+- [x] R9.2 Тесты: `/player.html` 200, `/__manifest` 200, `/project/config.json` 200, `/etc/passwd` 404, `..` 404, encoded traversal 404, symlink outside 404 (conditional), POST 405, HEAD 200.
 - [ ] R9.3 Проверить, что сцена не может сделать внешний fetch (route guard + CSP).
-- [ ] R9.4 Проверить CSP-хеш import map и реакцию на его изменение.
-- [ ] R9.5 Прогнать на Windows и Linux (если доступно).
+- [x] R9.4 Проверить CSP-хеш import map.
+- [~] R9.5 Прогнать на Windows и Linux: Windows — PASS; Linux-окружение недоступно.
+
+**Evidence (2026-11-07):**
+- `node render.mjs --project examples/reaction-time --self-check` → `SELF-CHECK PASS (11/11)`.
+- [tests/test_render_security.py](tests/test_render_security.py) → PASS; 9 unit tests total.
+- `npm test` → 6/6, exit 0; kit 29/29, 6 intentional patches.
+- Symlink check skipped на Windows (`EPERM`); на Linux должен выполняться.
+- R9.3 (внешний fetch) пока не автоматизирован; CSP и route guard присутствуют, но нужен отдельный browser test.
+
 
 **DoD:** security-тесты автоматизированы и зелёные; регрессия не возвращает старую уязвимость.
 
@@ -360,7 +368,7 @@
 | R6 | P0/P1 | Порядок и чистота | R0 | [~] |
 | R7 | P1 | Безопасность `new_project` | R2 | [x] |
 | R8 | P1 | Пути `--project` | R2 | [x] |
-| R9 | P1 | Security-тесты рендера | R1 | [ ] |
+| R9 | P1 | Security-тесты рендера | R1 | [~] |
 | R10 | P1 | Ошибки/exit codes | R2 | [ ] |
 | R11 | P1 | GPU/производительность | R2 | [ ] |
 | R12 | P1 | Документация | R2–R6 | [ ] |

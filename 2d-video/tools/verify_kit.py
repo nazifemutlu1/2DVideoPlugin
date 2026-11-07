@@ -56,7 +56,7 @@ EXPECTED = {
     "package.json": "20ec9c70ce291e3c",
     # Patched intentionally; see PATCHED above and patches/README.md.
     "player.html": "22a3882b61abe1a1",
-    "render.mjs": "3eb351aa6d6b1595",
+    "render.mjs": "37ab12bc5c492836",
     "tools/beats.py": "0d7160df4e2393bf",
     "tools/common.py": "719d9452a233a962",
     "tools/doctor.py": "d6b56eb3e93680cc",
